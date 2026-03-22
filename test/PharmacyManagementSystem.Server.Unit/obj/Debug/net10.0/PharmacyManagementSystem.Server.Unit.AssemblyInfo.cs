@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PharmacyManagementSystem.Server.Unit")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+58da281af3afdf21882837377d10b010e564d6d8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7672e9dd9b75fdb9a369af1ea4e1282131df9e0a")]
 [assembly: System.Reflection.AssemblyProductAttribute("PharmacyManagementSystem.Server.Unit")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PharmacyManagementSystem.Server.Unit")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

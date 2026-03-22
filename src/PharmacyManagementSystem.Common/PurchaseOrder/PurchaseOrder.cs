@@ -8,4 +8,5 @@ public class PurchaseOrder : BaseObject
     public string? Status { get; set; }
     public string? Notes { get; set; }
     public decimal TotalAmount { get; set; }
+    public Guid? QuotationId { get; set; }
 }

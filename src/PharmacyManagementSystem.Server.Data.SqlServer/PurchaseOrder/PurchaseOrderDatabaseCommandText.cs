@@ -6,7 +6,7 @@ namespace PharmacyManagementSystem.Server.Data.SqlServer.PurchaseOrder;
 
 public static class PurchaseOrderDatabaseCommandText
 {
-    private const string SelectColumns = "Id, VendorId, OrderDate, Status, Notes, TotalAmount, UpdatedAt, UpdatedBy, IsActive";
+    private const string SelectColumns = "Id, VendorId, OrderDate, Status, Notes, TotalAmount, QuotationId, UpdatedAt, UpdatedBy, IsActive";
 
     public static Task<DatabaseSqlWithParameters> GetSelectSql(PurchaseOrderFilter filter)
     {
@@ -78,15 +78,16 @@ public static class PurchaseOrderDatabaseCommandText
         parameters.Add("Status", purchaseOrder.Status);
         parameters.Add("Notes", purchaseOrder.Notes);
         parameters.Add("TotalAmount", purchaseOrder.TotalAmount);
+        parameters.Add("QuotationId", purchaseOrder.QuotationId);
         parameters.Add("UpdatedAt", DateTimeOffset.UtcNow);
         parameters.Add("UpdatedBy", purchaseOrder.UpdatedBy);
         parameters.Add("IsActive", true);
 
         return Task.FromResult(new DatabaseSqlWithParameters
         {
-            SqlStatement = @"INSERT INTO PMS.PurchaseOrders (Id, VendorId, OrderDate, Status, Notes, TotalAmount, UpdatedAt, UpdatedBy, IsActive)
+            SqlStatement = @"INSERT INTO PMS.PurchaseOrders (Id, VendorId, OrderDate, Status, Notes, TotalAmount, QuotationId, UpdatedAt, UpdatedBy, IsActive)
                              OUTPUT INSERTED.*
-                             VALUES (NEWID(), @VendorId, @OrderDate, @Status, @Notes, @TotalAmount, @UpdatedAt, @UpdatedBy, @IsActive)",
+                             VALUES (NEWID(), @VendorId, @OrderDate, @Status, @Notes, @TotalAmount, @QuotationId, @UpdatedAt, @UpdatedBy, @IsActive)",
             Parameters = parameters
         });
     }
@@ -102,6 +103,7 @@ public static class PurchaseOrderDatabaseCommandText
         parameters.Add("Status", purchaseOrder.Status);
         parameters.Add("Notes", purchaseOrder.Notes);
         parameters.Add("TotalAmount", purchaseOrder.TotalAmount);
+        parameters.Add("QuotationId", purchaseOrder.QuotationId);
         parameters.Add("UpdatedAt", DateTimeOffset.UtcNow);
         parameters.Add("UpdatedBy", purchaseOrder.UpdatedBy);
 
@@ -109,7 +111,7 @@ public static class PurchaseOrderDatabaseCommandText
         {
             SqlStatement = @"UPDATE PMS.PurchaseOrders
                              SET VendorId = @VendorId, OrderDate = @OrderDate, Status = @Status,
-                                 Notes = @Notes, TotalAmount = @TotalAmount,
+                                 Notes = @Notes, TotalAmount = @TotalAmount, QuotationId = @QuotationId,
                                  UpdatedAt = @UpdatedAt, UpdatedBy = @UpdatedBy
                              OUTPUT INSERTED.*
                              WHERE Id = @Id",
