@@ -1,0 +1,16 @@
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\bin\Debug\net9.0\PharmacyManagementSystem.Server.deps.json
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\bin\Debug\net9.0\PharmacyManagementSystem.Server.dll
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\bin\Debug\net9.0\PharmacyManagementSystem.Server.pdb
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\bin\Debug\net9.0\PharmacyManagementSystem.Common.dll
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\bin\Debug\net9.0\PharmacyManagementSystem.Common.pdb
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\obj\Debug\net9.0\PharmacyManagementSystem.Server.csproj.AssemblyReference.cache
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\obj\Debug\net9.0\PharmacyManagementSystem.Server.GeneratedMSBuildEditorConfig.editorconfig
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\obj\Debug\net9.0\PharmacyManagementSystem.Server.AssemblyInfoInputs.cache
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\obj\Debug\net9.0\PharmacyManagementSystem.Server.AssemblyInfo.cs
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\obj\Debug\net9.0\PharmacyManagementSystem.Server.csproj.CoreCompileInputs.cache
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\obj\Debug\net9.0\PharmacyManagementSystem.Server.sourcelink.json
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\obj\Debug\net9.0\Pharmacy.F03F8752.Up2Date
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\obj\Debug\net9.0\PharmacyManagementSystem.Server.dll
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\obj\Debug\net9.0\refint\PharmacyManagementSystem.Server.dll
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\obj\Debug\net9.0\PharmacyManagementSystem.Server.pdb
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Server\obj\Debug\net9.0\ref\PharmacyManagementSystem.Server.dll
