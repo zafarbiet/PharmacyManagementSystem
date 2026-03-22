@@ -1,0 +1,12 @@
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Common\bin\Debug\net10.0\PharmacyManagementSystem.Common.deps.json
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Common\bin\Debug\net10.0\PharmacyManagementSystem.Common.dll
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Common\bin\Debug\net10.0\PharmacyManagementSystem.Common.pdb
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Common\obj\Debug\net10.0\PharmacyManagementSystem.Common.GeneratedMSBuildEditorConfig.editorconfig
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Common\obj\Debug\net10.0\PharmacyManagementSystem.Common.AssemblyInfoInputs.cache
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Common\obj\Debug\net10.0\PharmacyManagementSystem.Common.AssemblyInfo.cs
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Common\obj\Debug\net10.0\PharmacyManagementSystem.Common.csproj.CoreCompileInputs.cache
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Common\obj\Debug\net10.0\PharmacyManagementSystem.Common.sourcelink.json
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Common\obj\Debug\net10.0\PharmacyManagementSystem.Common.dll
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Common\obj\Debug\net10.0\refint\PharmacyManagementSystem.Common.dll
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Common\obj\Debug\net10.0\PharmacyManagementSystem.Common.pdb
+C:\Workspace\PharmacyManagementSystem\src\PharmacyManagementSystem.Common\obj\Debug\net10.0\ref\PharmacyManagementSystem.Common.dll

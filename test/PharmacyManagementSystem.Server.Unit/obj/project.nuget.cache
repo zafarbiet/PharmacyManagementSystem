@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "5jYaJY4Vrw4=",
+  "dgSpecHash": "ghf5krjbJ3I=",
   "success": true,
   "projectFilePath": "C:\\Workspace\\PharmacyManagementSystem\\test\\PharmacyManagementSystem.Server.Unit\\PharmacyManagementSystem.Server.Unit.csproj",
   "expectedPackageFiles": [
@@ -25,13 +25,8 @@
     "C:\\Users\\zafar\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512",
     "C:\\Users\\zafar\\.nuget\\packages\\nsubstitute\\5.1.0\\nsubstitute.5.1.0.nupkg.sha512",
     "C:\\Users\\zafar\\.nuget\\packages\\system.configuration.configurationmanager\\4.4.0\\system.configuration.configurationmanager.4.4.0.nupkg.sha512",
-    "C:\\Users\\zafar\\.nuget\\packages\\system.diagnostics.diagnosticsource\\5.0.0\\system.diagnostics.diagnosticsource.5.0.0.nupkg.sha512",
     "C:\\Users\\zafar\\.nuget\\packages\\system.diagnostics.eventlog\\6.0.0\\system.diagnostics.eventlog.6.0.0.nupkg.sha512",
-    "C:\\Users\\zafar\\.nuget\\packages\\system.reflection.metadata\\1.6.0\\system.reflection.metadata.1.6.0.nupkg.sha512",
-    "C:\\Users\\zafar\\.nuget\\packages\\system.security.cryptography.protecteddata\\4.4.0\\system.security.cryptography.protecteddata.4.4.0.nupkg.sha512",
-    "C:\\Users\\zafar\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.14\\microsoft.netcore.app.ref.9.0.14.nupkg.sha512",
-    "C:\\Users\\zafar\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.14\\microsoft.windowsdesktop.app.ref.9.0.14.nupkg.sha512",
-    "C:\\Users\\zafar\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\9.0.14\\microsoft.aspnetcore.app.ref.9.0.14.nupkg.sha512"
+    "C:\\Users\\zafar\\.nuget\\packages\\system.security.cryptography.protecteddata\\4.4.0\\system.security.cryptography.protecteddata.4.4.0.nupkg.sha512"
   ],
   "logs": []
 }
