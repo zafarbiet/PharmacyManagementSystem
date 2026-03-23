@@ -15,7 +15,7 @@ public static class RackDatabaseCommandText
         var sql = $"SELECT {SelectColumns} FROM PMS.Racks WHERE 1=1";
         var parameters = new DynamicParameters();
 
-        if (filter.Id != Guid.Empty)
+        if (filter.Id.HasValue && filter.Id.Value != Guid.Empty)
         {
             sql += " AND Id = @Id";
             parameters.Add("Id", filter.Id);

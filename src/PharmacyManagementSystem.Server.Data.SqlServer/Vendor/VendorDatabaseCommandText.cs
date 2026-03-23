@@ -13,7 +13,7 @@ public static class VendorDatabaseCommandText
         var sql = "SELECT Id, Name, ContactPerson, Phone, Email, Address, GstNumber, UpdatedAt, UpdatedBy, IsActive FROM PMS.Vendors WHERE 1=1";
         var parameters = new DynamicParameters();
 
-        if (filter.Id != Guid.Empty)
+        if (filter.Id.HasValue && filter.Id.Value != Guid.Empty)
         {
             sql += " AND Id = @Id";
             parameters.Add("Id", filter.Id);
