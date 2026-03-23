@@ -3,7 +3,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using PharmacyManagementSystem.Common.Exceptions;
+using PharmacyManagementSystem.Server.PurchaseOrder;
+using PharmacyManagementSystem.Server.PurchaseOrderItem;
 using PharmacyManagementSystem.Server.Quotation;
+using PharmacyManagementSystem.Server.QuotationItem;
 using PharmacyManagementSystem.Server.Unit.Quotation.Data;
 
 namespace PharmacyManagementSystem.Server.Unit.Quotation;
@@ -13,13 +16,19 @@ public class TestSaveQuotationAction
 {
     private readonly ILogger<SaveQuotationAction> _logger;
     private readonly IQuotationRepository _repository;
+    private readonly IQuotationItemRepository _quotationItemRepository;
+    private readonly IPurchaseOrderRepository _purchaseOrderRepository;
+    private readonly IPurchaseOrderItemRepository _purchaseOrderItemRepository;
     private readonly SaveQuotationAction _action;
 
     public TestSaveQuotationAction()
     {
         _logger = Substitute.For<ILogger<SaveQuotationAction>>();
         _repository = Substitute.For<IQuotationRepository>();
-        _action = new SaveQuotationAction(_logger, _repository);
+        _quotationItemRepository = Substitute.For<IQuotationItemRepository>();
+        _purchaseOrderRepository = Substitute.For<IPurchaseOrderRepository>();
+        _purchaseOrderItemRepository = Substitute.For<IPurchaseOrderItemRepository>();
+        _action = new SaveQuotationAction(_logger, _repository, _quotationItemRepository, _purchaseOrderRepository, _purchaseOrderItemRepository);
     }
 
     [TestMethod]

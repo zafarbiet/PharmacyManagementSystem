@@ -54,6 +54,16 @@ using PharmacyManagementSystem.Server.DamageRecord;
 using PharmacyManagementSystem.Server.DamageDisposalRecord;
 using PharmacyManagementSystem.Server.DailyDiaryEntry;
 using PharmacyManagementSystem.Server.Notification;
+using PharmacyManagementSystem.Common.AuditLog;
+using PharmacyManagementSystem.Common.Branch;
+using PharmacyManagementSystem.Common.PaymentLedger;
+using PharmacyManagementSystem.Common.PurchaseOrder;
+using PharmacyManagementSystem.Server.AuditLog;
+using PharmacyManagementSystem.Server.Branch;
+using PharmacyManagementSystem.Server.PaymentLedger;
+using PharmacyManagementSystem.Server.PurchaseOrder;
+using PharmacyManagementSystem.Server.PurchaseOrderItem;
+using PharmacyManagementSystem.Server.Report;
 
 namespace PharmacyManagementSystem.Server.Host;
 
@@ -88,6 +98,12 @@ public static class ControllerExtensions
         app.AddDamageDisposalRecordApis();
         app.AddDailyDiaryEntryApis();
         app.AddNotificationApis();
+        app.AddBranchApis();
+        app.AddPaymentLedgerApis();
+        app.AddPurchaseOrderApis();
+        app.AddPurchaseOrderItemApis();
+        app.AddAuditLogApis();
+        app.AddReportApis();
         return app;
     }
 
@@ -178,6 +194,17 @@ public static class ControllerExtensions
             var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
             return result is null ? Results.NotFound() : Results.Ok(result);
         }).WithName("GetDrugById");
+
+        group.MapGet("/alternatives", async (
+            string composition,
+            [FromServices] IGetDrugAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(
+                new DrugFilter { Composition = composition },
+                cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetAlternativeDrugs");
 
         group.MapPost("/", async (
             [FromBody] Common.Drug.Drug drug,
@@ -1013,6 +1040,23 @@ public static class ControllerExtensions
             await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
             return Results.NoContent();
         }).WithName("DeleteQuotationRequest");
+
+        group.MapPost("/{id}/dispatch", async (
+            Guid id,
+            [FromBody] IReadOnlyList<Guid> vendorIds,
+            [FromServices] ISaveQuotationRequestAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.DispatchToVendorsAsync(id, vendorIds, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("DispatchRfqToVendors");
     }
 
     private static void AddQuotationRequestItemApis(this WebApplication app)
@@ -1145,6 +1189,27 @@ public static class ControllerExtensions
             await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
             return Results.NoContent();
         }).WithName("DeleteQuotation");
+
+        group.MapPost("/{id}/accept", async (
+            Guid id,
+            Guid? branchId,
+            [FromServices] ISaveQuotationAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AcceptAsync(id, branchId, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Created($"/api/purchase-orders/{result.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+            catch (ConflictException ex)
+            {
+                return Results.Conflict(ex.Message);
+            }
+        }).WithName("AcceptQuotation");
     }
 
     private static void AddQuotationItemApis(this WebApplication app)
@@ -1277,6 +1342,36 @@ public static class ControllerExtensions
             await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
             return Results.NoContent();
         }).WithName("DeleteCustomerSubscription");
+
+        group.MapPost("/{id}/approve", async (
+            Guid id,
+            string approvedBy,
+            [FromServices] ISaveCustomerSubscriptionAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.ApproveAsync(id, approvedBy, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+            catch (ConflictException ex)
+            {
+                return Results.Conflict(ex.Message);
+            }
+        }).WithName("ApproveCustomerSubscription");
+
+        group.MapPost("/approve-batch", async (
+            string approvedBy,
+            [FromServices] ISaveCustomerSubscriptionAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.ApproveBatchAsync(approvedBy, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("ApproveBatchCustomerSubscriptions");
     }
 
     private static void AddCustomerSubscriptionItemApis(this WebApplication app)
@@ -1871,5 +1966,390 @@ public static class ControllerExtensions
             await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
             return Results.NoContent();
         }).WithName("DeleteNotification");
+    }
+
+    private static void AddBranchApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/branches").WithTags("Branches");
+
+        group.MapGet("/", async (
+            [FromServices] IGetBranchAction action,
+            [AsParameters] BranchFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetBranches");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetBranchAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetBranchById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.Branch.Branch branch,
+            [FromServices] ISaveBranchAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(branch, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/branches/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreateBranch");
+
+        group.MapPut("/{id}", async (
+            Guid id,
+            [FromBody] Common.Branch.Branch branch,
+            [FromServices] ISaveBranchAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                branch.Id = id;
+                var result = await action.UpdateAsync(branch, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("UpdateBranch");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISaveBranchAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeleteBranch");
+    }
+
+    private static void AddPaymentLedgerApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/payment-ledger").WithTags("PaymentLedger");
+
+        group.MapGet("/", async (
+            [FromServices] IGetPaymentLedgerAction action,
+            [AsParameters] PaymentLedgerFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetPaymentLedgers");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetPaymentLedgerAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetPaymentLedgerById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.PaymentLedger.PaymentLedger paymentLedger,
+            [FromServices] ISavePaymentLedgerAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(paymentLedger, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/payment-ledger/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreatePaymentLedger");
+
+        group.MapPut("/{id}", async (
+            Guid id,
+            [FromBody] Common.PaymentLedger.PaymentLedger paymentLedger,
+            [FromServices] ISavePaymentLedgerAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                paymentLedger.Id = id;
+                var result = await action.UpdateAsync(paymentLedger, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("UpdatePaymentLedger");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISavePaymentLedgerAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeletePaymentLedger");
+
+        group.MapPost("/{id}/record-payment", async (
+            Guid id,
+            decimal amount,
+            [FromServices] ISavePaymentLedgerAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.RecordPaymentAsync(id, amount, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+            catch (ConflictException ex)
+            {
+                return Results.Conflict(ex.Message);
+            }
+        }).WithName("RecordPaymentLedgerPayment");
+    }
+
+    private static void AddPurchaseOrderApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/purchase-orders").WithTags("PurchaseOrders");
+
+        group.MapGet("/", async (
+            [FromServices] IGetPurchaseOrderAction action,
+            [AsParameters] PurchaseOrderFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetPurchaseOrders");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetPurchaseOrderAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetPurchaseOrderById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.PurchaseOrder.PurchaseOrder purchaseOrder,
+            [FromServices] ISavePurchaseOrderAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(purchaseOrder, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/purchase-orders/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreatePurchaseOrder");
+
+        group.MapPut("/{id}", async (
+            Guid id,
+            [FromBody] Common.PurchaseOrder.PurchaseOrder purchaseOrder,
+            [FromServices] ISavePurchaseOrderAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                purchaseOrder.Id = id;
+                var result = await action.UpdateAsync(purchaseOrder, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("UpdatePurchaseOrder");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISavePurchaseOrderAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeletePurchaseOrder");
+
+        group.MapPost("/{id}/approve", async (
+            Guid id,
+            string approvedBy,
+            [FromServices] ISavePurchaseOrderAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.ApprovePurchaseOrderAsync(id, approvedBy, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+            catch (ConflictException ex)
+            {
+                return Results.Conflict(ex.Message);
+            }
+        }).WithName("ApprovePurchaseOrder");
+
+        group.MapPost("/{id}/reject", async (
+            Guid id,
+            string rejectedBy,
+            [FromServices] ISavePurchaseOrderAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.RejectPurchaseOrderAsync(id, rejectedBy, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+            catch (ConflictException ex)
+            {
+                return Results.Conflict(ex.Message);
+            }
+        }).WithName("RejectPurchaseOrder");
+
+        group.MapPost("/{id}/receive", async (
+            Guid id,
+            [FromBody] IReadOnlyList<Common.PurchaseOrderItem.PurchaseOrderItem> receivedItems,
+            [FromServices] ISavePurchaseOrderAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.VerifyConsignmentAsync(id, receivedItems, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+            catch (ConflictException ex)
+            {
+                return Results.Conflict(ex.Message);
+            }
+        }).WithName("ReceivePurchaseOrderConsignment");
+    }
+
+    private static void AddPurchaseOrderItemApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/purchase-order-items").WithTags("PurchaseOrderItems");
+
+        group.MapGet("/", async (
+            [FromServices] IGetPurchaseOrderItemAction action,
+            [AsParameters] Common.PurchaseOrderItem.PurchaseOrderItemFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetPurchaseOrderItems");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetPurchaseOrderItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetPurchaseOrderItemById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.PurchaseOrderItem.PurchaseOrderItem purchaseOrderItem,
+            [FromServices] ISavePurchaseOrderItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(purchaseOrderItem, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/purchase-order-items/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreatePurchaseOrderItem");
+
+        group.MapPut("/{id}", async (
+            Guid id,
+            [FromBody] Common.PurchaseOrderItem.PurchaseOrderItem purchaseOrderItem,
+            [FromServices] ISavePurchaseOrderItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                purchaseOrderItem.Id = id;
+                var result = await action.UpdateAsync(purchaseOrderItem, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("UpdatePurchaseOrderItem");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISavePurchaseOrderItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeletePurchaseOrderItem");
+    }
+
+    private static void AddAuditLogApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/audit-logs").WithTags("AuditLogs");
+
+        group.MapGet("/", async (
+            [FromServices] IGetAuditLogAction action,
+            [AsParameters] AuditLogFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetAuditLogs");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetAuditLogAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetAuditLogById");
+    }
+
+    private static void AddReportApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/reports").WithTags("Reports");
+
+        group.MapGet("/daily-sales", async (
+            DateOnly date,
+            [FromServices] IReportService reportService,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await reportService.GetDailySalesReportAsync(date, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetDailySalesReport");
     }
 }

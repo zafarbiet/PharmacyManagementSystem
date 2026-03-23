@@ -9,4 +9,6 @@ public class DrugPricing : BaseObject
     public decimal Discount { get; set; }
     public decimal GstRate { get; set; }
     public DateTimeOffset EffectiveFrom { get; set; }
+    public decimal Mrp { get; set; }
+    public string? HsnCode { get; set; }
 }

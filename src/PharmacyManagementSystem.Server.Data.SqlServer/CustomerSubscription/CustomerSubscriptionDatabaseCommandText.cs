@@ -6,7 +6,7 @@ namespace PharmacyManagementSystem.Server.Data.SqlServer.CustomerSubscription;
 
 public static class CustomerSubscriptionDatabaseCommandText
 {
-    private const string SelectColumns = "Id, PatientId, StartDate, EndDate, CycleDayOfMonth, Status, ApprovedBy, ApprovedAt, Notes, UpdatedAt, UpdatedBy, IsActive";
+    private const string SelectColumns = "Id, PatientId, StartDate, EndDate, CycleDayOfMonth, Status, ApprovalStatus, ApprovedBy, ApprovedAt, Notes, UpdatedAt, UpdatedBy, IsActive";
 
     public static Task<DatabaseSqlWithParameters> GetSelectSql(CustomerSubscriptionFilter filter)
     {
@@ -31,6 +31,12 @@ public static class CustomerSubscriptionDatabaseCommandText
         {
             sql += " AND Status = @Status";
             parameters.Add("Status", filter.Status);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.ApprovalStatus))
+        {
+            sql += " AND ApprovalStatus = @ApprovalStatus";
+            parameters.Add("ApprovalStatus", filter.ApprovalStatus);
         }
 
         if (filter.DateFrom.HasValue)
@@ -78,6 +84,7 @@ public static class CustomerSubscriptionDatabaseCommandText
         parameters.Add("EndDate", customerSubscription.EndDate);
         parameters.Add("CycleDayOfMonth", customerSubscription.CycleDayOfMonth);
         parameters.Add("Status", customerSubscription.Status);
+        parameters.Add("ApprovalStatus", customerSubscription.ApprovalStatus);
         parameters.Add("ApprovedBy", customerSubscription.ApprovedBy);
         parameters.Add("ApprovedAt", customerSubscription.ApprovedAt);
         parameters.Add("Notes", customerSubscription.Notes);
@@ -87,9 +94,9 @@ public static class CustomerSubscriptionDatabaseCommandText
 
         return Task.FromResult(new DatabaseSqlWithParameters
         {
-            SqlStatement = @"INSERT INTO PMS.CustomerSubscriptions (Id, PatientId, StartDate, EndDate, CycleDayOfMonth, Status, ApprovedBy, ApprovedAt, Notes, UpdatedAt, UpdatedBy, IsActive)
+            SqlStatement = @"INSERT INTO PMS.CustomerSubscriptions (Id, PatientId, StartDate, EndDate, CycleDayOfMonth, Status, ApprovalStatus, ApprovedBy, ApprovedAt, Notes, UpdatedAt, UpdatedBy, IsActive)
                              OUTPUT INSERTED.*
-                             VALUES (NEWID(), @PatientId, @StartDate, @EndDate, @CycleDayOfMonth, @Status, @ApprovedBy, @ApprovedAt, @Notes, @UpdatedAt, @UpdatedBy, @IsActive)",
+                             VALUES (NEWID(), @PatientId, @StartDate, @EndDate, @CycleDayOfMonth, @Status, @ApprovalStatus, @ApprovedBy, @ApprovedAt, @Notes, @UpdatedAt, @UpdatedBy, @IsActive)",
             Parameters = parameters
         });
     }
@@ -105,6 +112,7 @@ public static class CustomerSubscriptionDatabaseCommandText
         parameters.Add("EndDate", customerSubscription.EndDate);
         parameters.Add("CycleDayOfMonth", customerSubscription.CycleDayOfMonth);
         parameters.Add("Status", customerSubscription.Status);
+        parameters.Add("ApprovalStatus", customerSubscription.ApprovalStatus);
         parameters.Add("ApprovedBy", customerSubscription.ApprovedBy);
         parameters.Add("ApprovedAt", customerSubscription.ApprovedAt);
         parameters.Add("Notes", customerSubscription.Notes);
@@ -116,6 +124,7 @@ public static class CustomerSubscriptionDatabaseCommandText
             SqlStatement = @"UPDATE PMS.CustomerSubscriptions
                              SET PatientId = @PatientId, StartDate = @StartDate, EndDate = @EndDate,
                                  CycleDayOfMonth = @CycleDayOfMonth, Status = @Status,
+                                 ApprovalStatus = @ApprovalStatus,
                                  ApprovedBy = @ApprovedBy, ApprovedAt = @ApprovedAt, Notes = @Notes,
                                  UpdatedAt = @UpdatedAt, UpdatedBy = @UpdatedBy
                              OUTPUT INSERTED.*

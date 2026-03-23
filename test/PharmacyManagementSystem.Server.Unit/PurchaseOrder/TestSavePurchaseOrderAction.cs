@@ -3,7 +3,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using PharmacyManagementSystem.Common.Exceptions;
+using PharmacyManagementSystem.Server.Notification;
 using PharmacyManagementSystem.Server.PurchaseOrder;
+using PharmacyManagementSystem.Server.PurchaseOrderItem;
 using PharmacyManagementSystem.Server.Unit.PurchaseOrder.Data;
 
 namespace PharmacyManagementSystem.Server.Unit.PurchaseOrder;
@@ -13,13 +15,17 @@ public class TestSavePurchaseOrderAction
 {
     private readonly ILogger<SavePurchaseOrderAction> _logger;
     private readonly IPurchaseOrderRepository _repository;
+    private readonly IPurchaseOrderItemRepository _purchaseOrderItemRepository;
+    private readonly ISaveNotificationAction _notificationAction;
     private readonly SavePurchaseOrderAction _action;
 
     public TestSavePurchaseOrderAction()
     {
         _logger = Substitute.For<ILogger<SavePurchaseOrderAction>>();
         _repository = Substitute.For<IPurchaseOrderRepository>();
-        _action = new SavePurchaseOrderAction(_logger, _repository);
+        _purchaseOrderItemRepository = Substitute.For<IPurchaseOrderItemRepository>();
+        _notificationAction = Substitute.For<ISaveNotificationAction>();
+        _action = new SavePurchaseOrderAction(_logger, _repository, _purchaseOrderItemRepository, _notificationAction);
     }
 
     [TestMethod]

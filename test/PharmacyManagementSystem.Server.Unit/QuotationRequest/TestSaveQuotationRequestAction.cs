@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using PharmacyManagementSystem.Common.Exceptions;
+using PharmacyManagementSystem.Server.Notification;
 using PharmacyManagementSystem.Server.QuotationRequest;
 using PharmacyManagementSystem.Server.Unit.QuotationRequest.Data;
 
@@ -13,13 +14,15 @@ public class TestSaveQuotationRequestAction
 {
     private readonly ILogger<SaveQuotationRequestAction> _logger;
     private readonly IQuotationRequestRepository _repository;
+    private readonly ISaveNotificationAction _notificationAction;
     private readonly SaveQuotationRequestAction _action;
 
     public TestSaveQuotationRequestAction()
     {
         _logger = Substitute.For<ILogger<SaveQuotationRequestAction>>();
         _repository = Substitute.For<IQuotationRequestRepository>();
-        _action = new SaveQuotationRequestAction(_logger, _repository);
+        _notificationAction = Substitute.For<ISaveNotificationAction>();
+        _action = new SaveQuotationRequestAction(_logger, _repository, _notificationAction);
     }
 
     [TestMethod]

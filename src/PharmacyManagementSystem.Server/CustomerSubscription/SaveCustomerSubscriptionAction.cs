@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using PharmacyManagementSystem.Common.CustomerSubscription;
 using PharmacyManagementSystem.Common.Exceptions;
 
 namespace PharmacyManagementSystem.Server.CustomerSubscription;
@@ -65,5 +66,59 @@ public class SaveCustomerSubscriptionAction(ILogger<SaveCustomerSubscriptionActi
         await _repository.RemoveAsync(id, updatedBy, cancellationToken).ConfigureAwait(false);
 
         _logger.LogDebug("Removed customer subscription with id: {Id}.", id);
+    }
+
+    public async Task<Common.CustomerSubscription.CustomerSubscription?> ApproveAsync(Guid id, string approvedBy, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(approvedBy);
+
+        _logger.LogDebug("Approving customer subscription {Id} by {ApprovedBy}.", id, approvedBy);
+
+        var subscription = await _repository.GetByIdAsync(id.ToString(), cancellationToken).ConfigureAwait(false);
+        if (subscription is null)
+            throw new BadRequestException($"Customer subscription {id} not found.");
+
+        if (subscription.ApprovalStatus is "Approved")
+            throw new ConflictException($"Customer subscription {id} is already approved.");
+
+        subscription.ApprovalStatus = "Approved";
+        subscription.ApprovedBy = approvedBy;
+        subscription.ApprovedAt = DateTimeOffset.UtcNow;
+        subscription.UpdatedBy = approvedBy;
+
+        var result = await _repository.UpdateAsync(subscription, cancellationToken).ConfigureAwait(false);
+
+        _logger.LogDebug("Approved customer subscription {Id}.", id);
+
+        return result;
+    }
+
+    public async Task<IReadOnlyCollection<Common.CustomerSubscription.CustomerSubscription>> ApproveBatchAsync(string approvedBy, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(approvedBy);
+
+        _logger.LogDebug("Batch approving pending customer subscriptions by {ApprovedBy}.", approvedBy);
+
+        var pending = await _repository.GetByFilterCriteriaAsync(
+            new CustomerSubscriptionFilter { ApprovalStatus = "Pending" },
+            cancellationToken).ConfigureAwait(false);
+
+        var approved = new List<Common.CustomerSubscription.CustomerSubscription>();
+
+        foreach (var subscription in pending ?? [])
+        {
+            subscription.ApprovalStatus = "Approved";
+            subscription.ApprovedBy = approvedBy;
+            subscription.ApprovedAt = DateTimeOffset.UtcNow;
+            subscription.UpdatedBy = approvedBy;
+
+            var result = await _repository.UpdateAsync(subscription, cancellationToken).ConfigureAwait(false);
+            if (result is not null)
+                approved.Add(result);
+        }
+
+        _logger.LogDebug("Batch approved {Count} customer subscriptions.", approved.Count);
+
+        return approved;
     }
 }

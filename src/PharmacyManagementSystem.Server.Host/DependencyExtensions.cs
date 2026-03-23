@@ -41,6 +41,10 @@ using PharmacyManagementSystem.Server.Data.SqlServer.DamageRecord;
 using PharmacyManagementSystem.Server.Data.SqlServer.DamageDisposalRecord;
 using PharmacyManagementSystem.Server.Data.SqlServer.DailyDiaryEntry;
 using PharmacyManagementSystem.Server.Data.SqlServer.Notification;
+using PharmacyManagementSystem.Server.Data.SqlServer.Branch;
+using PharmacyManagementSystem.Server.Data.SqlServer.AuditLog;
+using PharmacyManagementSystem.Server.Data.SqlServer.PaymentLedger;
+using PharmacyManagementSystem.Server.Data.SqlServer.Report;
 using PharmacyManagementSystem.Server.DrugCategory;
 using PharmacyManagementSystem.Server.Drug;
 using PharmacyManagementSystem.Server.DrugInventory;
@@ -79,6 +83,11 @@ using PharmacyManagementSystem.Server.DamageRecord;
 using PharmacyManagementSystem.Server.DamageDisposalRecord;
 using PharmacyManagementSystem.Server.DailyDiaryEntry;
 using PharmacyManagementSystem.Server.Notification;
+using PharmacyManagementSystem.Server.Branch;
+using PharmacyManagementSystem.Server.PaymentLedger;
+using PharmacyManagementSystem.Server.AuditLog;
+using PharmacyManagementSystem.Server.GstCalculation;
+using PharmacyManagementSystem.Server.Report;
 
 namespace PharmacyManagementSystem.Server.Host;
 
@@ -98,230 +107,254 @@ public static class DependencyExtensions
         // DrugCategory - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IDrugCategoryStorageClient, SqlServerDrugCategoryStorageClient>();
         services.AddScoped<IDrugCategoryRepository, DrugCategoryRepository>();
-        services.AddSingleton<IGetDrugCategoryAction, GetDrugCategoryAction>();
-        services.AddSingleton<ISaveDrugCategoryAction, SaveDrugCategoryAction>();
+        services.AddScoped<IGetDrugCategoryAction, GetDrugCategoryAction>();
+        services.AddScoped<ISaveDrugCategoryAction, SaveDrugCategoryAction>();
 
         // Drug - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IDrugStorageClient, SqlServerDrugStorageClient>();
         services.AddScoped<IDrugRepository, DrugRepository>();
-        services.AddSingleton<IGetDrugAction, GetDrugAction>();
-        services.AddSingleton<ISaveDrugAction, SaveDrugAction>();
+        services.AddScoped<IGetDrugAction, GetDrugAction>();
+        services.AddScoped<ISaveDrugAction, SaveDrugAction>();
 
         // Vendor - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IVendorStorageClient, SqlServerVendorStorageClient>();
         services.AddScoped<IVendorRepository, VendorRepository>();
-        services.AddSingleton<IGetVendorAction, GetVendorAction>();
-        services.AddSingleton<ISaveVendorAction, SaveVendorAction>();
+        services.AddScoped<IGetVendorAction, GetVendorAction>();
+        services.AddScoped<ISaveVendorAction, SaveVendorAction>();
 
         // DrugInventory - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IDrugInventoryStorageClient, SqlServerDrugInventoryStorageClient>();
         services.AddScoped<IDrugInventoryRepository, DrugInventoryRepository>();
-        services.AddSingleton<IGetDrugInventoryAction, GetDrugInventoryAction>();
-        services.AddSingleton<ISaveDrugInventoryAction, SaveDrugInventoryAction>();
+        services.AddScoped<IGetDrugInventoryAction, GetDrugInventoryAction>();
+        services.AddScoped<ISaveDrugInventoryAction, SaveDrugInventoryAction>();
 
         // DrugPricing - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IDrugPricingStorageClient, SqlServerDrugPricingStorageClient>();
         services.AddScoped<IDrugPricingRepository, DrugPricingRepository>();
-        services.AddSingleton<IGetDrugPricingAction, GetDrugPricingAction>();
-        services.AddSingleton<ISaveDrugPricingAction, SaveDrugPricingAction>();
+        services.AddScoped<IGetDrugPricingAction, GetDrugPricingAction>();
+        services.AddScoped<ISaveDrugPricingAction, SaveDrugPricingAction>();
 
         // DrugUsage - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IDrugUsageStorageClient, SqlServerDrugUsageStorageClient>();
         services.AddScoped<IDrugUsageRepository, DrugUsageRepository>();
-        services.AddSingleton<IGetDrugUsageAction, GetDrugUsageAction>();
-        services.AddSingleton<ISaveDrugUsageAction, SaveDrugUsageAction>();
+        services.AddScoped<IGetDrugUsageAction, GetDrugUsageAction>();
+        services.AddScoped<ISaveDrugUsageAction, SaveDrugUsageAction>();
 
         // Patient - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IPatientStorageClient, SqlServerPatientStorageClient>();
         services.AddScoped<IPatientRepository, PatientRepository>();
-        services.AddSingleton<IGetPatientAction, GetPatientAction>();
-        services.AddSingleton<ISavePatientAction, SavePatientAction>();
+        services.AddScoped<IGetPatientAction, GetPatientAction>();
+        services.AddScoped<ISavePatientAction, SavePatientAction>();
 
         // Prescription - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IPrescriptionStorageClient, SqlServerPrescriptionStorageClient>();
         services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
-        services.AddSingleton<IGetPrescriptionAction, GetPrescriptionAction>();
-        services.AddSingleton<ISavePrescriptionAction, SavePrescriptionAction>();
+        services.AddScoped<IGetPrescriptionAction, GetPrescriptionAction>();
+        services.AddScoped<ISavePrescriptionAction, SavePrescriptionAction>();
 
         // PrescriptionItem - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IPrescriptionItemStorageClient, SqlServerPrescriptionItemStorageClient>();
         services.AddScoped<IPrescriptionItemRepository, PrescriptionItemRepository>();
-        services.AddSingleton<IGetPrescriptionItemAction, GetPrescriptionItemAction>();
-        services.AddSingleton<ISavePrescriptionItemAction, SavePrescriptionItemAction>();
+        services.AddScoped<IGetPrescriptionItemAction, GetPrescriptionItemAction>();
+        services.AddScoped<ISavePrescriptionItemAction, SavePrescriptionItemAction>();
 
         // PurchaseOrder - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IPurchaseOrderStorageClient, SqlServerPurchaseOrderStorageClient>();
         services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
-        services.AddSingleton<IGetPurchaseOrderAction, GetPurchaseOrderAction>();
-        services.AddSingleton<ISavePurchaseOrderAction, SavePurchaseOrderAction>();
+        services.AddScoped<IGetPurchaseOrderAction, GetPurchaseOrderAction>();
+        services.AddScoped<ISavePurchaseOrderAction, SavePurchaseOrderAction>();
 
         // PurchaseOrderItem - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IPurchaseOrderItemStorageClient, SqlServerPurchaseOrderItemStorageClient>();
         services.AddScoped<IPurchaseOrderItemRepository, PurchaseOrderItemRepository>();
-        services.AddSingleton<IGetPurchaseOrderItemAction, GetPurchaseOrderItemAction>();
-        services.AddSingleton<ISavePurchaseOrderItemAction, SavePurchaseOrderItemAction>();
+        services.AddScoped<IGetPurchaseOrderItemAction, GetPurchaseOrderItemAction>();
+        services.AddScoped<ISavePurchaseOrderItemAction, SavePurchaseOrderItemAction>();
+
+        // GstCalculationService - Singleton (pure math, no DB)
+        services.AddSingleton<IGstCalculationService, GstCalculationService>();
 
         // CustomerInvoice - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<ICustomerInvoiceStorageClient, SqlServerCustomerInvoiceStorageClient>();
         services.AddScoped<ICustomerInvoiceRepository, CustomerInvoiceRepository>();
-        services.AddSingleton<IGetCustomerInvoiceAction, GetCustomerInvoiceAction>();
-        services.AddSingleton<ISaveCustomerInvoiceAction, SaveCustomerInvoiceAction>();
+        services.AddScoped<IGetCustomerInvoiceAction, GetCustomerInvoiceAction>();
+        services.AddScoped<ISaveCustomerInvoiceAction, SaveCustomerInvoiceAction>();
 
         // CustomerInvoiceItem - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<ICustomerInvoiceItemStorageClient, SqlServerCustomerInvoiceItemStorageClient>();
         services.AddScoped<ICustomerInvoiceItemRepository, CustomerInvoiceItemRepository>();
-        services.AddSingleton<IGetCustomerInvoiceItemAction, GetCustomerInvoiceItemAction>();
-        services.AddSingleton<ISaveCustomerInvoiceItemAction, SaveCustomerInvoiceItemAction>();
+        services.AddScoped<IGetCustomerInvoiceItemAction, GetCustomerInvoiceItemAction>();
+        services.AddScoped<ISaveCustomerInvoiceItemAction, SaveCustomerInvoiceItemAction>();
 
         // StockTransaction - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IStockTransactionStorageClient, SqlServerStockTransactionStorageClient>();
         services.AddScoped<IStockTransactionRepository, StockTransactionRepository>();
-        services.AddSingleton<IGetStockTransactionAction, GetStockTransactionAction>();
-        services.AddSingleton<ISaveStockTransactionAction, SaveStockTransactionAction>();
+        services.AddScoped<IGetStockTransactionAction, GetStockTransactionAction>();
+        services.AddScoped<ISaveStockTransactionAction, SaveStockTransactionAction>();
 
         // AppUser - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IAppUserStorageClient, SqlServerAppUserStorageClient>();
         services.AddScoped<IAppUserRepository, AppUserRepository>();
-        services.AddSingleton<IGetAppUserAction, GetAppUserAction>();
-        services.AddSingleton<ISaveAppUserAction, SaveAppUserAction>();
+        services.AddScoped<IGetAppUserAction, GetAppUserAction>();
+        services.AddScoped<ISaveAppUserAction, SaveAppUserAction>();
 
         // Role - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IRoleStorageClient, SqlServerRoleStorageClient>();
         services.AddScoped<IRoleRepository, RoleRepository>();
-        services.AddSingleton<IGetRoleAction, GetRoleAction>();
-        services.AddSingleton<ISaveRoleAction, SaveRoleAction>();
+        services.AddScoped<IGetRoleAction, GetRoleAction>();
+        services.AddScoped<ISaveRoleAction, SaveRoleAction>();
 
         // UserRole - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IUserRoleStorageClient, SqlServerUserRoleStorageClient>();
         services.AddScoped<IUserRoleRepository, UserRoleRepository>();
-        services.AddSingleton<IGetUserRoleAction, GetUserRoleAction>();
-        services.AddSingleton<ISaveUserRoleAction, SaveUserRoleAction>();
+        services.AddScoped<IGetUserRoleAction, GetUserRoleAction>();
+        services.AddScoped<ISaveUserRoleAction, SaveUserRoleAction>();
 
         // StorageZone - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IStorageZoneStorageClient, SqlServerStorageZoneStorageClient>();
         services.AddScoped<IStorageZoneRepository, StorageZoneRepository>();
-        services.AddSingleton<IGetStorageZoneAction, GetStorageZoneAction>();
-        services.AddSingleton<ISaveStorageZoneAction, SaveStorageZoneAction>();
+        services.AddScoped<IGetStorageZoneAction, GetStorageZoneAction>();
+        services.AddScoped<ISaveStorageZoneAction, SaveStorageZoneAction>();
 
         // Rack - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IRackStorageClient, SqlServerRackStorageClient>();
         services.AddScoped<IRackRepository, RackRepository>();
-        services.AddSingleton<IGetRackAction, GetRackAction>();
-        services.AddSingleton<ISaveRackAction, SaveRackAction>();
+        services.AddScoped<IGetRackAction, GetRackAction>();
+        services.AddScoped<ISaveRackAction, SaveRackAction>();
 
         // DrugInventoryRackAssignment - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IDrugInventoryRackAssignmentStorageClient, SqlServerDrugInventoryRackAssignmentStorageClient>();
         services.AddScoped<IDrugInventoryRackAssignmentRepository, DrugInventoryRackAssignmentRepository>();
-        services.AddSingleton<IGetDrugInventoryRackAssignmentAction, GetDrugInventoryRackAssignmentAction>();
-        services.AddSingleton<ISaveDrugInventoryRackAssignmentAction, SaveDrugInventoryRackAssignmentAction>();
+        services.AddScoped<IGetDrugInventoryRackAssignmentAction, GetDrugInventoryRackAssignmentAction>();
+        services.AddScoped<ISaveDrugInventoryRackAssignmentAction, SaveDrugInventoryRackAssignmentAction>();
 
         // ExpiryAlertConfiguration - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IExpiryAlertConfigurationStorageClient, SqlServerExpiryAlertConfigurationStorageClient>();
         services.AddScoped<IExpiryAlertConfigurationRepository, ExpiryAlertConfigurationRepository>();
-        services.AddSingleton<IGetExpiryAlertConfigurationAction, GetExpiryAlertConfigurationAction>();
-        services.AddSingleton<ISaveExpiryAlertConfigurationAction, SaveExpiryAlertConfigurationAction>();
+        services.AddScoped<IGetExpiryAlertConfigurationAction, GetExpiryAlertConfigurationAction>();
+        services.AddScoped<ISaveExpiryAlertConfigurationAction, SaveExpiryAlertConfigurationAction>();
 
         // ExpiryRecord - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IExpiryRecordStorageClient, SqlServerExpiryRecordStorageClient>();
         services.AddScoped<IExpiryRecordRepository, ExpiryRecordRepository>();
-        services.AddSingleton<IGetExpiryRecordAction, GetExpiryRecordAction>();
-        services.AddSingleton<ISaveExpiryRecordAction, SaveExpiryRecordAction>();
+        services.AddScoped<IGetExpiryRecordAction, GetExpiryRecordAction>();
+        services.AddScoped<ISaveExpiryRecordAction, SaveExpiryRecordAction>();
 
         // DisposalRecord - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IDisposalRecordStorageClient, SqlServerDisposalRecordStorageClient>();
         services.AddScoped<IDisposalRecordRepository, DisposalRecordRepository>();
-        services.AddSingleton<IGetDisposalRecordAction, GetDisposalRecordAction>();
-        services.AddSingleton<ISaveDisposalRecordAction, SaveDisposalRecordAction>();
+        services.AddScoped<IGetDisposalRecordAction, GetDisposalRecordAction>();
+        services.AddScoped<ISaveDisposalRecordAction, SaveDisposalRecordAction>();
 
         // VendorExpiryReturnRequest - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IVendorExpiryReturnRequestStorageClient, SqlServerVendorExpiryReturnRequestStorageClient>();
         services.AddScoped<IVendorExpiryReturnRequestRepository, VendorExpiryReturnRequestRepository>();
-        services.AddSingleton<IGetVendorExpiryReturnRequestAction, GetVendorExpiryReturnRequestAction>();
-        services.AddSingleton<ISaveVendorExpiryReturnRequestAction, SaveVendorExpiryReturnRequestAction>();
+        services.AddScoped<IGetVendorExpiryReturnRequestAction, GetVendorExpiryReturnRequestAction>();
+        services.AddScoped<ISaveVendorExpiryReturnRequestAction, SaveVendorExpiryReturnRequestAction>();
 
         // QuotationRequest - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IQuotationRequestStorageClient, SqlServerQuotationRequestStorageClient>();
         services.AddScoped<IQuotationRequestRepository, QuotationRequestRepository>();
-        services.AddSingleton<IGetQuotationRequestAction, GetQuotationRequestAction>();
-        services.AddSingleton<ISaveQuotationRequestAction, SaveQuotationRequestAction>();
+        services.AddScoped<IGetQuotationRequestAction, GetQuotationRequestAction>();
+        services.AddScoped<ISaveQuotationRequestAction, SaveQuotationRequestAction>();
 
         // QuotationRequestItem - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IQuotationRequestItemStorageClient, SqlServerQuotationRequestItemStorageClient>();
         services.AddScoped<IQuotationRequestItemRepository, QuotationRequestItemRepository>();
-        services.AddSingleton<IGetQuotationRequestItemAction, GetQuotationRequestItemAction>();
-        services.AddSingleton<ISaveQuotationRequestItemAction, SaveQuotationRequestItemAction>();
+        services.AddScoped<IGetQuotationRequestItemAction, GetQuotationRequestItemAction>();
+        services.AddScoped<ISaveQuotationRequestItemAction, SaveQuotationRequestItemAction>();
 
         // Quotation - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IQuotationStorageClient, SqlServerQuotationStorageClient>();
         services.AddScoped<IQuotationRepository, QuotationRepository>();
-        services.AddSingleton<IGetQuotationAction, GetQuotationAction>();
-        services.AddSingleton<ISaveQuotationAction, SaveQuotationAction>();
+        services.AddScoped<IGetQuotationAction, GetQuotationAction>();
+        services.AddScoped<ISaveQuotationAction, SaveQuotationAction>();
 
         // QuotationItem - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IQuotationItemStorageClient, SqlServerQuotationItemStorageClient>();
         services.AddScoped<IQuotationItemRepository, QuotationItemRepository>();
-        services.AddSingleton<IGetQuotationItemAction, GetQuotationItemAction>();
-        services.AddSingleton<ISaveQuotationItemAction, SaveQuotationItemAction>();
+        services.AddScoped<IGetQuotationItemAction, GetQuotationItemAction>();
+        services.AddScoped<ISaveQuotationItemAction, SaveQuotationItemAction>();
 
         // CustomerSubscription - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<ICustomerSubscriptionStorageClient, SqlServerCustomerSubscriptionStorageClient>();
         services.AddScoped<ICustomerSubscriptionRepository, CustomerSubscriptionRepository>();
-        services.AddSingleton<IGetCustomerSubscriptionAction, GetCustomerSubscriptionAction>();
-        services.AddSingleton<ISaveCustomerSubscriptionAction, SaveCustomerSubscriptionAction>();
+        services.AddScoped<IGetCustomerSubscriptionAction, GetCustomerSubscriptionAction>();
+        services.AddScoped<ISaveCustomerSubscriptionAction, SaveCustomerSubscriptionAction>();
 
         // CustomerSubscriptionItem - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<ICustomerSubscriptionItemStorageClient, SqlServerCustomerSubscriptionItemStorageClient>();
         services.AddScoped<ICustomerSubscriptionItemRepository, CustomerSubscriptionItemRepository>();
-        services.AddSingleton<IGetCustomerSubscriptionItemAction, GetCustomerSubscriptionItemAction>();
-        services.AddSingleton<ISaveCustomerSubscriptionItemAction, SaveCustomerSubscriptionItemAction>();
+        services.AddScoped<IGetCustomerSubscriptionItemAction, GetCustomerSubscriptionItemAction>();
+        services.AddScoped<ISaveCustomerSubscriptionItemAction, SaveCustomerSubscriptionItemAction>();
 
         // SubscriptionFulfillment - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<ISubscriptionFulfillmentStorageClient, SqlServerSubscriptionFulfillmentStorageClient>();
         services.AddScoped<ISubscriptionFulfillmentRepository, SubscriptionFulfillmentRepository>();
-        services.AddSingleton<IGetSubscriptionFulfillmentAction, GetSubscriptionFulfillmentAction>();
-        services.AddSingleton<ISaveSubscriptionFulfillmentAction, SaveSubscriptionFulfillmentAction>();
+        services.AddScoped<IGetSubscriptionFulfillmentAction, GetSubscriptionFulfillmentAction>();
+        services.AddScoped<ISaveSubscriptionFulfillmentAction, SaveSubscriptionFulfillmentAction>();
 
         // DebtRecord - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IDebtRecordStorageClient, SqlServerDebtRecordStorageClient>();
         services.AddScoped<IDebtRecordRepository, DebtRecordRepository>();
-        services.AddSingleton<IGetDebtRecordAction, GetDebtRecordAction>();
-        services.AddSingleton<ISaveDebtRecordAction, SaveDebtRecordAction>();
+        services.AddScoped<IGetDebtRecordAction, GetDebtRecordAction>();
+        services.AddScoped<ISaveDebtRecordAction, SaveDebtRecordAction>();
 
         // DebtPayment - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IDebtPaymentStorageClient, SqlServerDebtPaymentStorageClient>();
         services.AddScoped<IDebtPaymentRepository, DebtPaymentRepository>();
-        services.AddSingleton<IGetDebtPaymentAction, GetDebtPaymentAction>();
-        services.AddSingleton<ISaveDebtPaymentAction, SaveDebtPaymentAction>();
+        services.AddScoped<IGetDebtPaymentAction, GetDebtPaymentAction>();
+        services.AddScoped<ISaveDebtPaymentAction, SaveDebtPaymentAction>();
 
         // DebtReminder - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IDebtReminderStorageClient, SqlServerDebtReminderStorageClient>();
         services.AddScoped<IDebtReminderRepository, DebtReminderRepository>();
-        services.AddSingleton<IGetDebtReminderAction, GetDebtReminderAction>();
-        services.AddSingleton<ISaveDebtReminderAction, SaveDebtReminderAction>();
+        services.AddScoped<IGetDebtReminderAction, GetDebtReminderAction>();
+        services.AddScoped<ISaveDebtReminderAction, SaveDebtReminderAction>();
 
         // DamageRecord - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IDamageRecordStorageClient, SqlServerDamageRecordStorageClient>();
         services.AddScoped<IDamageRecordRepository, DamageRecordRepository>();
-        services.AddSingleton<IGetDamageRecordAction, GetDamageRecordAction>();
-        services.AddSingleton<ISaveDamageRecordAction, SaveDamageRecordAction>();
+        services.AddScoped<IGetDamageRecordAction, GetDamageRecordAction>();
+        services.AddScoped<ISaveDamageRecordAction, SaveDamageRecordAction>();
 
         // DamageDisposalRecord - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IDamageDisposalRecordStorageClient, SqlServerDamageDisposalRecordStorageClient>();
         services.AddScoped<IDamageDisposalRecordRepository, DamageDisposalRecordRepository>();
-        services.AddSingleton<IGetDamageDisposalRecordAction, GetDamageDisposalRecordAction>();
-        services.AddSingleton<ISaveDamageDisposalRecordAction, SaveDamageDisposalRecordAction>();
+        services.AddScoped<IGetDamageDisposalRecordAction, GetDamageDisposalRecordAction>();
+        services.AddScoped<ISaveDamageDisposalRecordAction, SaveDamageDisposalRecordAction>();
 
         // DailyDiaryEntry - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IDailyDiaryEntryStorageClient, SqlServerDailyDiaryEntryStorageClient>();
         services.AddScoped<IDailyDiaryEntryRepository, DailyDiaryEntryRepository>();
-        services.AddSingleton<IGetDailyDiaryEntryAction, GetDailyDiaryEntryAction>();
-        services.AddSingleton<ISaveDailyDiaryEntryAction, SaveDailyDiaryEntryAction>();
+        services.AddScoped<IGetDailyDiaryEntryAction, GetDailyDiaryEntryAction>();
+        services.AddScoped<ISaveDailyDiaryEntryAction, SaveDailyDiaryEntryAction>();
 
         // Notification - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<INotificationStorageClient, SqlServerNotificationStorageClient>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
-        services.AddSingleton<IGetNotificationAction, GetNotificationAction>();
-        services.AddSingleton<ISaveNotificationAction, SaveNotificationAction>();
+        services.AddScoped<IGetNotificationAction, GetNotificationAction>();
+        services.AddScoped<ISaveNotificationAction, SaveNotificationAction>();
+
+        // Branch - Storage Client + Repository: Scoped; Actions: Singleton
+        services.AddScoped<IBranchStorageClient, SqlServerBranchStorageClient>();
+        services.AddScoped<IBranchRepository, BranchRepository>();
+        services.AddScoped<IGetBranchAction, GetBranchAction>();
+        services.AddScoped<ISaveBranchAction, SaveBranchAction>();
+
+        // PaymentLedger - Storage Client + Repository: Scoped; Actions: Singleton
+        services.AddScoped<IPaymentLedgerStorageClient, SqlServerPaymentLedgerStorageClient>();
+        services.AddScoped<IPaymentLedgerRepository, PaymentLedgerRepository>();
+        services.AddScoped<IGetPaymentLedgerAction, GetPaymentLedgerAction>();
+        services.AddScoped<ISavePaymentLedgerAction, SavePaymentLedgerAction>();
+
+        // AuditLog - Storage Client + Repository: Scoped; Actions: Singleton
+        services.AddScoped<IAuditLogStorageClient, SqlServerAuditLogStorageClient>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+        services.AddScoped<IGetAuditLogAction, GetAuditLogAction>();
+        services.AddScoped<ISaveAuditLogAction, SaveAuditLogAction>();
+
+        // Report - Scoped (uses ISqlServerDbClient)
+        services.AddScoped<IReportService, SqlServerReportService>();
 
         // FluentMigrator
         services.AddFluentMigratorCore()
