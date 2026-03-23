@@ -11,4 +11,9 @@ public class CustomerInvoiceItem : BaseObject
     public decimal DiscountPercent { get; set; }
     public decimal GstRate { get; set; }
     public decimal Amount { get; set; }
+    public string? HsnCode { get; set; }
+    public decimal TaxableValue { get; set; }
+    public decimal CgstAmount { get; set; }
+    public decimal SgstAmount { get; set; }
+    public decimal IgstAmount { get; set; }
 }

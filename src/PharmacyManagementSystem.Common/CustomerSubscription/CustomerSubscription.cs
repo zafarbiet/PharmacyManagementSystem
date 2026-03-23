@@ -10,5 +10,6 @@ public class CustomerSubscription : BaseObject
     public string? Status { get; set; }
     public string? ApprovedBy { get; set; }
     public DateTimeOffset? ApprovedAt { get; set; }
+    public string? ApprovalStatus { get; set; }
     public string? Notes { get; set; }
 }

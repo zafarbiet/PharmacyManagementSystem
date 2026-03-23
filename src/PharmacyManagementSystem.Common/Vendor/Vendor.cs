@@ -9,4 +9,8 @@ public class Vendor : BaseObject
     public string? Email { get; set; }
     public string? Address { get; set; }
     public string? GstNumber { get; set; }
+    public string? DrugLicenseNumber { get; set; }
+    public int CreditTermsDays { get; set; }
+    public decimal CreditLimit { get; set; }
+    public decimal OutstandingBalance { get; set; }
 }

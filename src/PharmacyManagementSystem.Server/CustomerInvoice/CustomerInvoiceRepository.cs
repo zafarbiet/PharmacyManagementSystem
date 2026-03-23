@@ -70,4 +70,15 @@ public class CustomerInvoiceRepository(ILogger<CustomerInvoiceRepository> logger
 
         _logger.LogDebug("Repository: Removed customer invoice with id: {Id}.", id);
     }
+
+    public async Task<string> GetNextInvoiceNumberAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Repository: Getting next invoice number.");
+
+        var result = await _storageClient.GetNextInvoiceNumberAsync(cancellationToken).ConfigureAwait(false);
+
+        _logger.LogDebug("Repository: Next invoice number is {InvoiceNumber}.", result);
+
+        return result;
+    }
 }

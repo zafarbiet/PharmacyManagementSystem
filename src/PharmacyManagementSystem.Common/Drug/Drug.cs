@@ -17,4 +17,8 @@ public class Drug : BaseObject
     public DateTimeOffset? ApprovalDate { get; set; }
     public string? ScheduleCategory { get; set; }
     public bool PrescriptionRequired { get; set; }
+    public string? HsnCode { get; set; }
+    public decimal GstSlab { get; set; }
+    public string? Composition { get; set; }
+    public decimal Mrp { get; set; }
 }

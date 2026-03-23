@@ -1,0 +1,4068 @@
+openapi: 3.0.3
+info:
+  title: Pharmacy Management System API
+  version: 1.0.0
+  description: REST API for PharmacyManagementSystem (Indian pharmacy — GST, batch/expiry tracking, MRP-based margins)
+servers:
+  - url: http://localhost:5050
+    description: Local dev
+
+tags:
+  - name: DrugCategories
+  - name: Drugs
+  - name: Vendors
+  - name: AppUsers
+  - name: Roles
+  - name: UserRoles
+  - name: StorageZones
+  - name: Racks
+  - name: DrugInventoryRackAssignments
+  - name: ExpiryAlertConfigurations
+  - name: ExpiryRecords
+  - name: DisposalRecords
+  - name: VendorExpiryReturnRequests
+  - name: QuotationRequests
+  - name: QuotationRequestItems
+  - name: Quotations
+  - name: QuotationItems
+  - name: CustomerSubscriptions
+  - name: CustomerSubscriptionItems
+  - name: SubscriptionFulfillments
+  - name: DebtRecords
+  - name: DebtPayments
+  - name: DebtReminders
+  - name: DamageRecords
+  - name: DamageDisposalRecords
+  - name: DailyDiaryEntries
+  - name: Notifications
+  - name: Branches
+  - name: PaymentLedger
+  - name: PurchaseOrders
+  - name: PurchaseOrderItems
+  - name: AuditLogs
+  - name: Reports
+
+paths:
+
+  # ── Drug Categories ──────────────────────────────────────────────────────────
+
+  /api/drug-categories:
+    get:
+      tags: [DrugCategories]
+      operationId: GetDrugCategories
+      summary: List drug categories
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DrugCategory'
+    post:
+      tags: [DrugCategories]
+      operationId: CreateDrugCategory
+      summary: Create a drug category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DrugCategory'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrugCategory'
+        '422':
+          description: Validation error
+
+  /api/drug-categories/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [DrugCategories]
+      operationId: GetDrugCategoryById
+      summary: Get drug category by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrugCategory'
+        '404':
+          description: Not found
+    put:
+      tags: [DrugCategories]
+      operationId: UpdateDrugCategory
+      summary: Update drug category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DrugCategory'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrugCategory'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [DrugCategories]
+      operationId: DeleteDrugCategory
+      summary: Soft-delete drug category
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Drugs ────────────────────────────────────────────────────────────────────
+
+  /api/drugs:
+    get:
+      tags: [Drugs]
+      operationId: GetDrugs
+      summary: List drugs
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: genericName
+          in: query
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: composition
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Drug'
+    post:
+      tags: [Drugs]
+      operationId: CreateDrug
+      summary: Create a drug
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Drug'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Drug'
+        '422':
+          description: Validation error
+
+  /api/drugs/alternatives:
+    get:
+      tags: [Drugs]
+      operationId: GetAlternativeDrugs
+      summary: Get alternative drugs by composition
+      parameters:
+        - name: composition
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Drug'
+
+  /api/drugs/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [Drugs]
+      operationId: GetDrugById
+      summary: Get drug by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Drug'
+        '404':
+          description: Not found
+    put:
+      tags: [Drugs]
+      operationId: UpdateDrug
+      summary: Update drug
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Drug'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Drug'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [Drugs]
+      operationId: DeleteDrug
+      summary: Soft-delete drug
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Vendors ──────────────────────────────────────────────────────────────────
+
+  /api/vendors:
+    get:
+      tags: [Vendors]
+      operationId: GetVendors
+      summary: List vendors
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vendor'
+    post:
+      tags: [Vendors]
+      operationId: CreateVendor
+      summary: Create a vendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Vendor'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+        '422':
+          description: Validation error
+
+  /api/vendors/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [Vendors]
+      operationId: GetVendorById
+      summary: Get vendor by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+        '404':
+          description: Not found
+    put:
+      tags: [Vendors]
+      operationId: UpdateVendor
+      summary: Update vendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Vendor'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [Vendors]
+      operationId: DeleteVendor
+      summary: Soft-delete vendor
+      responses:
+        '204':
+          description: Deleted
+
+  # ── App Users ─────────────────────────────────────────────────────────────────
+
+  /api/app-users:
+    get:
+      tags: [AppUsers]
+      operationId: GetAppUsers
+      summary: List app users
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AppUser'
+    post:
+      tags: [AppUsers]
+      operationId: CreateAppUser
+      summary: Create an app user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppUser'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppUser'
+        '422':
+          description: Validation error
+
+  /api/app-users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [AppUsers]
+      operationId: GetAppUserById
+      summary: Get app user by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppUser'
+        '404':
+          description: Not found
+    put:
+      tags: [AppUsers]
+      operationId: UpdateAppUser
+      summary: Update app user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppUser'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppUser'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [AppUsers]
+      operationId: DeleteAppUser
+      summary: Soft-delete app user
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Roles ─────────────────────────────────────────────────────────────────────
+
+  /api/roles:
+    get:
+      tags: [Roles]
+      operationId: GetRoles
+      summary: List roles
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+    post:
+      tags: [Roles]
+      operationId: CreateRole
+      summary: Create a role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+        '422':
+          description: Validation error
+
+  /api/roles/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [Roles]
+      operationId: GetRoleById
+      summary: Get role by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+        '404':
+          description: Not found
+    put:
+      tags: [Roles]
+      operationId: UpdateRole
+      summary: Update role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [Roles]
+      operationId: DeleteRole
+      summary: Soft-delete role
+      responses:
+        '204':
+          description: Deleted
+
+  # ── User Roles ───────────────────────────────────────────────────────────────
+
+  /api/user-roles:
+    get:
+      tags: [UserRoles]
+      operationId: GetUserRoles
+      summary: List user roles
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserRole'
+    post:
+      tags: [UserRoles]
+      operationId: CreateUserRole
+      summary: Assign a role to a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRole'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRole'
+        '422':
+          description: Validation error
+
+  /api/user-roles/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [UserRoles]
+      operationId: GetUserRoleById
+      summary: Get user role by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRole'
+        '404':
+          description: Not found
+    put:
+      tags: [UserRoles]
+      operationId: UpdateUserRole
+      summary: Update user role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRole'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRole'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [UserRoles]
+      operationId: DeleteUserRole
+      summary: Soft-delete user role
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Storage Zones ─────────────────────────────────────────────────────────────
+
+  /api/storage-zones:
+    get:
+      tags: [StorageZones]
+      operationId: GetStorageZones
+      summary: List storage zones
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StorageZone'
+    post:
+      tags: [StorageZones]
+      operationId: CreateStorageZone
+      summary: Create a storage zone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StorageZone'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageZone'
+        '422':
+          description: Validation error
+
+  /api/storage-zones/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [StorageZones]
+      operationId: GetStorageZoneById
+      summary: Get storage zone by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageZone'
+        '404':
+          description: Not found
+    put:
+      tags: [StorageZones]
+      operationId: UpdateStorageZone
+      summary: Update storage zone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StorageZone'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageZone'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [StorageZones]
+      operationId: DeleteStorageZone
+      summary: Soft-delete storage zone
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Racks ─────────────────────────────────────────────────────────────────────
+
+  /api/racks:
+    get:
+      tags: [Racks]
+      operationId: GetRacks
+      summary: List racks
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rack'
+    post:
+      tags: [Racks]
+      operationId: CreateRack
+      summary: Create a rack
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rack'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rack'
+        '422':
+          description: Validation error
+
+  /api/racks/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [Racks]
+      operationId: GetRackById
+      summary: Get rack by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rack'
+        '404':
+          description: Not found
+    put:
+      tags: [Racks]
+      operationId: UpdateRack
+      summary: Update rack
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rack'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rack'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [Racks]
+      operationId: DeleteRack
+      summary: Soft-delete rack
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Drug Inventory Rack Assignments ──────────────────────────────────────────
+
+  /api/drug-inventory-rack-assignments:
+    get:
+      tags: [DrugInventoryRackAssignments]
+      operationId: GetDrugInventoryRackAssignments
+      summary: List drug inventory rack assignments
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DrugInventoryRackAssignment'
+    post:
+      tags: [DrugInventoryRackAssignments]
+      operationId: CreateDrugInventoryRackAssignment
+      summary: Create a drug inventory rack assignment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DrugInventoryRackAssignment'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrugInventoryRackAssignment'
+        '422':
+          description: Validation error
+
+  /api/drug-inventory-rack-assignments/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [DrugInventoryRackAssignments]
+      operationId: GetDrugInventoryRackAssignmentById
+      summary: Get rack assignment by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrugInventoryRackAssignment'
+        '404':
+          description: Not found
+    put:
+      tags: [DrugInventoryRackAssignments]
+      operationId: UpdateDrugInventoryRackAssignment
+      summary: Update rack assignment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DrugInventoryRackAssignment'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrugInventoryRackAssignment'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [DrugInventoryRackAssignments]
+      operationId: DeleteDrugInventoryRackAssignment
+      summary: Soft-delete rack assignment
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Expiry Alert Configurations ───────────────────────────────────────────────
+
+  /api/expiry-alert-configurations:
+    get:
+      tags: [ExpiryAlertConfigurations]
+      operationId: GetExpiryAlertConfigurations
+      summary: List expiry alert configurations
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExpiryAlertConfiguration'
+    post:
+      tags: [ExpiryAlertConfigurations]
+      operationId: CreateExpiryAlertConfiguration
+      summary: Create an expiry alert configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpiryAlertConfiguration'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpiryAlertConfiguration'
+        '422':
+          description: Validation error
+
+  /api/expiry-alert-configurations/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [ExpiryAlertConfigurations]
+      operationId: GetExpiryAlertConfigurationById
+      summary: Get expiry alert configuration by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpiryAlertConfiguration'
+        '404':
+          description: Not found
+    put:
+      tags: [ExpiryAlertConfigurations]
+      operationId: UpdateExpiryAlertConfiguration
+      summary: Update expiry alert configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpiryAlertConfiguration'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpiryAlertConfiguration'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [ExpiryAlertConfigurations]
+      operationId: DeleteExpiryAlertConfiguration
+      summary: Soft-delete expiry alert configuration
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Expiry Records ────────────────────────────────────────────────────────────
+
+  /api/expiry-records:
+    get:
+      tags: [ExpiryRecords]
+      operationId: GetExpiryRecords
+      summary: List expiry records
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExpiryRecord'
+    post:
+      tags: [ExpiryRecords]
+      operationId: CreateExpiryRecord
+      summary: Create an expiry record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpiryRecord'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpiryRecord'
+        '422':
+          description: Validation error
+
+  /api/expiry-records/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [ExpiryRecords]
+      operationId: GetExpiryRecordById
+      summary: Get expiry record by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpiryRecord'
+        '404':
+          description: Not found
+    put:
+      tags: [ExpiryRecords]
+      operationId: UpdateExpiryRecord
+      summary: Update expiry record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpiryRecord'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpiryRecord'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [ExpiryRecords]
+      operationId: DeleteExpiryRecord
+      summary: Soft-delete expiry record
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Disposal Records ──────────────────────────────────────────────────────────
+
+  /api/disposal-records:
+    get:
+      tags: [DisposalRecords]
+      operationId: GetDisposalRecords
+      summary: List disposal records
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DisposalRecord'
+    post:
+      tags: [DisposalRecords]
+      operationId: CreateDisposalRecord
+      summary: Create a disposal record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisposalRecord'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisposalRecord'
+        '422':
+          description: Validation error
+
+  /api/disposal-records/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [DisposalRecords]
+      operationId: GetDisposalRecordById
+      summary: Get disposal record by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisposalRecord'
+        '404':
+          description: Not found
+    put:
+      tags: [DisposalRecords]
+      operationId: UpdateDisposalRecord
+      summary: Update disposal record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisposalRecord'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisposalRecord'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [DisposalRecords]
+      operationId: DeleteDisposalRecord
+      summary: Soft-delete disposal record
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Vendor Expiry Return Requests ─────────────────────────────────────────────
+
+  /api/vendor-expiry-return-requests:
+    get:
+      tags: [VendorExpiryReturnRequests]
+      operationId: GetVendorExpiryReturnRequests
+      summary: List vendor expiry return requests
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VendorExpiryReturnRequest'
+    post:
+      tags: [VendorExpiryReturnRequests]
+      operationId: CreateVendorExpiryReturnRequest
+      summary: Create a vendor expiry return request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorExpiryReturnRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorExpiryReturnRequest'
+        '422':
+          description: Validation error
+
+  /api/vendor-expiry-return-requests/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [VendorExpiryReturnRequests]
+      operationId: GetVendorExpiryReturnRequestById
+      summary: Get vendor expiry return request by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorExpiryReturnRequest'
+        '404':
+          description: Not found
+    put:
+      tags: [VendorExpiryReturnRequests]
+      operationId: UpdateVendorExpiryReturnRequest
+      summary: Update vendor expiry return request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorExpiryReturnRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorExpiryReturnRequest'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [VendorExpiryReturnRequests]
+      operationId: DeleteVendorExpiryReturnRequest
+      summary: Soft-delete vendor expiry return request
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Quotation Requests ────────────────────────────────────────────────────────
+
+  /api/quotation-requests:
+    get:
+      tags: [QuotationRequests]
+      operationId: GetQuotationRequests
+      summary: List quotation requests (RFQs)
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuotationRequest'
+    post:
+      tags: [QuotationRequests]
+      operationId: CreateQuotationRequest
+      summary: Create a quotation request (RFQ)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuotationRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationRequest'
+        '422':
+          description: Validation error
+
+  /api/quotation-requests/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [QuotationRequests]
+      operationId: GetQuotationRequestById
+      summary: Get quotation request by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationRequest'
+        '404':
+          description: Not found
+    put:
+      tags: [QuotationRequests]
+      operationId: UpdateQuotationRequest
+      summary: Update quotation request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuotationRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationRequest'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [QuotationRequests]
+      operationId: DeleteQuotationRequest
+      summary: Soft-delete quotation request
+      responses:
+        '204':
+          description: Deleted
+
+  /api/quotation-requests/{id}/dispatch:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    post:
+      tags: [QuotationRequests]
+      operationId: DispatchRfqToVendors
+      summary: Dispatch RFQ to selected vendors
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                format: uuid
+              description: List of vendor IDs to dispatch to
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationRequest'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+
+  # ── Quotation Request Items ───────────────────────────────────────────────────
+
+  /api/quotation-request-items:
+    get:
+      tags: [QuotationRequestItems]
+      operationId: GetQuotationRequestItems
+      summary: List quotation request items
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuotationRequestItem'
+    post:
+      tags: [QuotationRequestItems]
+      operationId: CreateQuotationRequestItem
+      summary: Create a quotation request item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuotationRequestItem'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationRequestItem'
+        '422':
+          description: Validation error
+
+  /api/quotation-request-items/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [QuotationRequestItems]
+      operationId: GetQuotationRequestItemById
+      summary: Get quotation request item by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationRequestItem'
+        '404':
+          description: Not found
+    put:
+      tags: [QuotationRequestItems]
+      operationId: UpdateQuotationRequestItem
+      summary: Update quotation request item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuotationRequestItem'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationRequestItem'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [QuotationRequestItems]
+      operationId: DeleteQuotationRequestItem
+      summary: Soft-delete quotation request item
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Quotations ────────────────────────────────────────────────────────────────
+
+  /api/quotations:
+    get:
+      tags: [Quotations]
+      operationId: GetQuotations
+      summary: List quotations (vendor responses)
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Quotation'
+    post:
+      tags: [Quotations]
+      operationId: CreateQuotation
+      summary: Create a quotation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Quotation'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quotation'
+        '422':
+          description: Validation error
+
+  /api/quotations/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [Quotations]
+      operationId: GetQuotationById
+      summary: Get quotation by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quotation'
+        '404':
+          description: Not found
+    put:
+      tags: [Quotations]
+      operationId: UpdateQuotation
+      summary: Update quotation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Quotation'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quotation'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [Quotations]
+      operationId: DeleteQuotation
+      summary: Soft-delete quotation
+      responses:
+        '204':
+          description: Deleted
+
+  /api/quotations/{id}/accept:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    post:
+      tags: [Quotations]
+      operationId: AcceptQuotation
+      summary: Accept quotation and create a Purchase Order
+      parameters:
+        - name: branchId
+          in: query
+          schema:
+            type: string
+            format: uuid
+            nullable: true
+      responses:
+        '201':
+          description: Purchase Order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
+        '422':
+          description: Validation error
+
+  # ── Quotation Items ───────────────────────────────────────────────────────────
+
+  /api/quotation-items:
+    get:
+      tags: [QuotationItems]
+      operationId: GetQuotationItems
+      summary: List quotation items
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuotationItem'
+    post:
+      tags: [QuotationItems]
+      operationId: CreateQuotationItem
+      summary: Create a quotation item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuotationItem'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationItem'
+        '422':
+          description: Validation error
+
+  /api/quotation-items/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [QuotationItems]
+      operationId: GetQuotationItemById
+      summary: Get quotation item by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationItem'
+        '404':
+          description: Not found
+    put:
+      tags: [QuotationItems]
+      operationId: UpdateQuotationItem
+      summary: Update quotation item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuotationItem'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationItem'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [QuotationItems]
+      operationId: DeleteQuotationItem
+      summary: Soft-delete quotation item
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Customer Subscriptions ────────────────────────────────────────────────────
+
+  /api/customer-subscriptions:
+    get:
+      tags: [CustomerSubscriptions]
+      operationId: GetCustomerSubscriptions
+      summary: List customer subscriptions
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomerSubscription'
+    post:
+      tags: [CustomerSubscriptions]
+      operationId: CreateCustomerSubscription
+      summary: Create a customer subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerSubscription'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSubscription'
+        '422':
+          description: Validation error
+
+  /api/customer-subscriptions/approve-batch:
+    post:
+      tags: [CustomerSubscriptions]
+      operationId: ApproveBatchCustomerSubscriptions
+      summary: Approve all pending subscriptions in batch
+      parameters:
+        - name: approvedBy
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomerSubscription'
+
+  /api/customer-subscriptions/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [CustomerSubscriptions]
+      operationId: GetCustomerSubscriptionById
+      summary: Get customer subscription by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSubscription'
+        '404':
+          description: Not found
+    put:
+      tags: [CustomerSubscriptions]
+      operationId: UpdateCustomerSubscription
+      summary: Update customer subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerSubscription'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSubscription'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [CustomerSubscriptions]
+      operationId: DeleteCustomerSubscription
+      summary: Soft-delete customer subscription
+      responses:
+        '204':
+          description: Deleted
+
+  /api/customer-subscriptions/{id}/approve:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    post:
+      tags: [CustomerSubscriptions]
+      operationId: ApproveCustomerSubscription
+      summary: Approve a customer subscription
+      parameters:
+        - name: approvedBy
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSubscription'
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
+        '422':
+          description: Validation error
+
+  # ── Customer Subscription Items ───────────────────────────────────────────────
+
+  /api/customer-subscription-items:
+    get:
+      tags: [CustomerSubscriptionItems]
+      operationId: GetCustomerSubscriptionItems
+      summary: List customer subscription items
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomerSubscriptionItem'
+    post:
+      tags: [CustomerSubscriptionItems]
+      operationId: CreateCustomerSubscriptionItem
+      summary: Create a customer subscription item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerSubscriptionItem'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSubscriptionItem'
+        '422':
+          description: Validation error
+
+  /api/customer-subscription-items/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [CustomerSubscriptionItems]
+      operationId: GetCustomerSubscriptionItemById
+      summary: Get customer subscription item by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSubscriptionItem'
+        '404':
+          description: Not found
+    put:
+      tags: [CustomerSubscriptionItems]
+      operationId: UpdateCustomerSubscriptionItem
+      summary: Update customer subscription item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerSubscriptionItem'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSubscriptionItem'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [CustomerSubscriptionItems]
+      operationId: DeleteCustomerSubscriptionItem
+      summary: Soft-delete customer subscription item
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Subscription Fulfillments ─────────────────────────────────────────────────
+
+  /api/subscription-fulfillments:
+    get:
+      tags: [SubscriptionFulfillments]
+      operationId: GetSubscriptionFulfillments
+      summary: List subscription fulfillments
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubscriptionFulfillment'
+    post:
+      tags: [SubscriptionFulfillments]
+      operationId: CreateSubscriptionFulfillment
+      summary: Create a subscription fulfillment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionFulfillment'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionFulfillment'
+        '422':
+          description: Validation error
+
+  /api/subscription-fulfillments/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [SubscriptionFulfillments]
+      operationId: GetSubscriptionFulfillmentById
+      summary: Get subscription fulfillment by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionFulfillment'
+        '404':
+          description: Not found
+    put:
+      tags: [SubscriptionFulfillments]
+      operationId: UpdateSubscriptionFulfillment
+      summary: Update subscription fulfillment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionFulfillment'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionFulfillment'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [SubscriptionFulfillments]
+      operationId: DeleteSubscriptionFulfillment
+      summary: Soft-delete subscription fulfillment
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Debt Records ──────────────────────────────────────────────────────────────
+
+  /api/debt-records:
+    get:
+      tags: [DebtRecords]
+      operationId: GetDebtRecords
+      summary: List debt records
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DebtRecord'
+    post:
+      tags: [DebtRecords]
+      operationId: CreateDebtRecord
+      summary: Create a debt record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DebtRecord'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebtRecord'
+        '422':
+          description: Validation error
+
+  /api/debt-records/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [DebtRecords]
+      operationId: GetDebtRecordById
+      summary: Get debt record by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebtRecord'
+        '404':
+          description: Not found
+    put:
+      tags: [DebtRecords]
+      operationId: UpdateDebtRecord
+      summary: Update debt record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DebtRecord'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebtRecord'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [DebtRecords]
+      operationId: DeleteDebtRecord
+      summary: Soft-delete debt record
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Debt Payments ─────────────────────────────────────────────────────────────
+
+  /api/debt-payments:
+    get:
+      tags: [DebtPayments]
+      operationId: GetDebtPayments
+      summary: List debt payments
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DebtPayment'
+    post:
+      tags: [DebtPayments]
+      operationId: CreateDebtPayment
+      summary: Create a debt payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DebtPayment'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebtPayment'
+        '422':
+          description: Validation error
+
+  /api/debt-payments/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [DebtPayments]
+      operationId: GetDebtPaymentById
+      summary: Get debt payment by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebtPayment'
+        '404':
+          description: Not found
+    put:
+      tags: [DebtPayments]
+      operationId: UpdateDebtPayment
+      summary: Update debt payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DebtPayment'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebtPayment'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [DebtPayments]
+      operationId: DeleteDebtPayment
+      summary: Soft-delete debt payment
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Debt Reminders ────────────────────────────────────────────────────────────
+
+  /api/debt-reminders:
+    get:
+      tags: [DebtReminders]
+      operationId: GetDebtReminders
+      summary: List debt reminders
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DebtReminder'
+    post:
+      tags: [DebtReminders]
+      operationId: CreateDebtReminder
+      summary: Create a debt reminder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DebtReminder'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebtReminder'
+        '422':
+          description: Validation error
+
+  /api/debt-reminders/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [DebtReminders]
+      operationId: GetDebtReminderById
+      summary: Get debt reminder by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebtReminder'
+        '404':
+          description: Not found
+    put:
+      tags: [DebtReminders]
+      operationId: UpdateDebtReminder
+      summary: Update debt reminder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DebtReminder'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebtReminder'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [DebtReminders]
+      operationId: DeleteDebtReminder
+      summary: Soft-delete debt reminder
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Damage Records ────────────────────────────────────────────────────────────
+
+  /api/damage-records:
+    get:
+      tags: [DamageRecords]
+      operationId: GetDamageRecords
+      summary: List damage records
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DamageRecord'
+    post:
+      tags: [DamageRecords]
+      operationId: CreateDamageRecord
+      summary: Create a damage record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DamageRecord'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DamageRecord'
+        '422':
+          description: Validation error
+
+  /api/damage-records/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [DamageRecords]
+      operationId: GetDamageRecordById
+      summary: Get damage record by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DamageRecord'
+        '404':
+          description: Not found
+    put:
+      tags: [DamageRecords]
+      operationId: UpdateDamageRecord
+      summary: Update damage record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DamageRecord'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DamageRecord'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [DamageRecords]
+      operationId: DeleteDamageRecord
+      summary: Soft-delete damage record
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Damage Disposal Records ───────────────────────────────────────────────────
+
+  /api/damage-disposal-records:
+    get:
+      tags: [DamageDisposalRecords]
+      operationId: GetDamageDisposalRecords
+      summary: List damage disposal records
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DamageDisposalRecord'
+    post:
+      tags: [DamageDisposalRecords]
+      operationId: CreateDamageDisposalRecord
+      summary: Create a damage disposal record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DamageDisposalRecord'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DamageDisposalRecord'
+        '422':
+          description: Validation error
+
+  /api/damage-disposal-records/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [DamageDisposalRecords]
+      operationId: GetDamageDisposalRecordById
+      summary: Get damage disposal record by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DamageDisposalRecord'
+        '404':
+          description: Not found
+    put:
+      tags: [DamageDisposalRecords]
+      operationId: UpdateDamageDisposalRecord
+      summary: Update damage disposal record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DamageDisposalRecord'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DamageDisposalRecord'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [DamageDisposalRecords]
+      operationId: DeleteDamageDisposalRecord
+      summary: Soft-delete damage disposal record
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Daily Diary Entries ───────────────────────────────────────────────────────
+
+  /api/daily-diary-entries:
+    get:
+      tags: [DailyDiaryEntries]
+      operationId: GetDailyDiaryEntries
+      summary: List daily diary entries
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DailyDiaryEntry'
+    post:
+      tags: [DailyDiaryEntries]
+      operationId: CreateDailyDiaryEntry
+      summary: Create a daily diary entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DailyDiaryEntry'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyDiaryEntry'
+        '422':
+          description: Validation error
+
+  /api/daily-diary-entries/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [DailyDiaryEntries]
+      operationId: GetDailyDiaryEntryById
+      summary: Get daily diary entry by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyDiaryEntry'
+        '404':
+          description: Not found
+    put:
+      tags: [DailyDiaryEntries]
+      operationId: UpdateDailyDiaryEntry
+      summary: Update daily diary entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DailyDiaryEntry'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyDiaryEntry'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [DailyDiaryEntries]
+      operationId: DeleteDailyDiaryEntry
+      summary: Soft-delete daily diary entry
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Notifications ─────────────────────────────────────────────────────────────
+
+  /api/notifications:
+    get:
+      tags: [Notifications]
+      operationId: GetNotifications
+      summary: List notifications
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+    post:
+      tags: [Notifications]
+      operationId: CreateNotification
+      summary: Create a notification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '422':
+          description: Validation error
+
+  /api/notifications/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [Notifications]
+      operationId: GetNotificationById
+      summary: Get notification by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '404':
+          description: Not found
+    put:
+      tags: [Notifications]
+      operationId: UpdateNotification
+      summary: Update notification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [Notifications]
+      operationId: DeleteNotification
+      summary: Soft-delete notification
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Branches ──────────────────────────────────────────────────────────────────
+
+  /api/branches:
+    get:
+      tags: [Branches]
+      operationId: GetBranches
+      summary: List branches
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Branch'
+    post:
+      tags: [Branches]
+      operationId: CreateBranch
+      summary: Create a branch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Branch'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Branch'
+        '422':
+          description: Validation error
+
+  /api/branches/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [Branches]
+      operationId: GetBranchById
+      summary: Get branch by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Branch'
+        '404':
+          description: Not found
+    put:
+      tags: [Branches]
+      operationId: UpdateBranch
+      summary: Update branch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Branch'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Branch'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [Branches]
+      operationId: DeleteBranch
+      summary: Soft-delete branch
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Payment Ledger ────────────────────────────────────────────────────────────
+
+  /api/payment-ledger:
+    get:
+      tags: [PaymentLedger]
+      operationId: GetPaymentLedgers
+      summary: List payment ledger entries
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentLedger'
+    post:
+      tags: [PaymentLedger]
+      operationId: CreatePaymentLedger
+      summary: Create a payment ledger entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentLedger'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentLedger'
+        '422':
+          description: Validation error
+
+  /api/payment-ledger/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [PaymentLedger]
+      operationId: GetPaymentLedgerById
+      summary: Get payment ledger entry by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentLedger'
+        '404':
+          description: Not found
+    put:
+      tags: [PaymentLedger]
+      operationId: UpdatePaymentLedger
+      summary: Update payment ledger entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentLedger'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentLedger'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [PaymentLedger]
+      operationId: DeletePaymentLedger
+      summary: Soft-delete payment ledger entry
+      responses:
+        '204':
+          description: Deleted
+
+  /api/payment-ledger/{id}/record-payment:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    post:
+      tags: [PaymentLedger]
+      operationId: RecordPaymentLedgerPayment
+      summary: Record a payment against a ledger entry
+      parameters:
+        - name: amount
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentLedger'
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
+        '422':
+          description: Validation error
+
+  # ── Purchase Orders ───────────────────────────────────────────────────────────
+
+  /api/purchase-orders:
+    get:
+      tags: [PurchaseOrders]
+      operationId: GetPurchaseOrders
+      summary: List purchase orders
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PurchaseOrder'
+    post:
+      tags: [PurchaseOrders]
+      operationId: CreatePurchaseOrder
+      summary: Create a purchase order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrder'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+        '422':
+          description: Validation error
+
+  /api/purchase-orders/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [PurchaseOrders]
+      operationId: GetPurchaseOrderById
+      summary: Get purchase order by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+        '404':
+          description: Not found
+    put:
+      tags: [PurchaseOrders]
+      operationId: UpdatePurchaseOrder
+      summary: Update purchase order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrder'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [PurchaseOrders]
+      operationId: DeletePurchaseOrder
+      summary: Soft-delete purchase order
+      responses:
+        '204':
+          description: Deleted
+
+  /api/purchase-orders/{id}/approve:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    post:
+      tags: [PurchaseOrders]
+      operationId: ApprovePurchaseOrder
+      summary: Approve a purchase order
+      parameters:
+        - name: approvedBy
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
+        '422':
+          description: Validation error
+
+  /api/purchase-orders/{id}/reject:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    post:
+      tags: [PurchaseOrders]
+      operationId: RejectPurchaseOrder
+      summary: Reject a purchase order
+      parameters:
+        - name: rejectedBy
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
+        '422':
+          description: Validation error
+
+  /api/purchase-orders/{id}/receive:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    post:
+      tags: [PurchaseOrders]
+      operationId: ReceivePurchaseOrderConsignment
+      summary: Verify and receive a consignment against a PO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PurchaseOrderItem'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+        '404':
+          description: Not found
+        '409':
+          description: Conflict
+        '422':
+          description: Validation error
+
+  # ── Purchase Order Items ──────────────────────────────────────────────────────
+
+  /api/purchase-order-items:
+    get:
+      tags: [PurchaseOrderItems]
+      operationId: GetPurchaseOrderItems
+      summary: List purchase order items
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PurchaseOrderItem'
+    post:
+      tags: [PurchaseOrderItems]
+      operationId: CreatePurchaseOrderItem
+      summary: Create a purchase order item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderItem'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrderItem'
+        '422':
+          description: Validation error
+
+  /api/purchase-order-items/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [PurchaseOrderItems]
+      operationId: GetPurchaseOrderItemById
+      summary: Get purchase order item by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrderItem'
+        '404':
+          description: Not found
+    put:
+      tags: [PurchaseOrderItems]
+      operationId: UpdatePurchaseOrderItem
+      summary: Update purchase order item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderItem'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrderItem'
+        '404':
+          description: Not found
+        '422':
+          description: Validation error
+    delete:
+      tags: [PurchaseOrderItems]
+      operationId: DeletePurchaseOrderItem
+      summary: Soft-delete purchase order item
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Audit Logs (read-only) ────────────────────────────────────────────────────
+
+  /api/audit-logs:
+    get:
+      tags: [AuditLogs]
+      operationId: GetAuditLogs
+      summary: List audit logs (Schedule H/H1 dispensing log)
+      parameters:
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterDateFrom'
+        - $ref: '#/components/parameters/FilterDateTo'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditLog'
+
+  /api/audit-logs/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [AuditLogs]
+      operationId: GetAuditLogById
+      summary: Get audit log by ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLog'
+        '404':
+          description: Not found
+
+  # ── Reports ───────────────────────────────────────────────────────────────────
+
+  /api/reports/daily-sales:
+    get:
+      tags: [Reports]
+      operationId: GetDailySalesReport
+      summary: Get daily sales report
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2026-03-22'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailySalesReport'
+
+# ── Components ────────────────────────────────────────────────────────────────
+
+components:
+
+  parameters:
+    PathId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    FilterId:
+      name: id
+      in: query
+      schema:
+        type: string
+        format: uuid
+    FilterDateFrom:
+      name: dateFrom
+      in: query
+      schema:
+        type: string
+        format: date-time
+    FilterDateTo:
+      name: dateTo
+      in: query
+      schema:
+        type: string
+        format: date-time
+
+  schemas:
+
+    BaseObject:
+      type: object
+      properties:
+        updatedAt:
+          type: string
+          format: date-time
+        updatedBy:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+
+    DrugCategory:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+              nullable: true
+            description:
+              type: string
+              nullable: true
+
+    Drug:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+              nullable: true
+            genericName:
+              type: string
+              nullable: true
+            manufacturerName:
+              type: string
+              nullable: true
+            categoryId:
+              type: string
+              format: uuid
+            unitOfMeasure:
+              type: string
+              nullable: true
+            reorderLevel:
+              type: integer
+            brandName:
+              type: string
+              nullable: true
+            dosageForm:
+              type: string
+              nullable: true
+            strength:
+              type: string
+              nullable: true
+            description:
+              type: string
+              nullable: true
+            drugLicenseNumber:
+              type: string
+              nullable: true
+            approvalDate:
+              type: string
+              format: date-time
+              nullable: true
+            scheduleCategory:
+              type: string
+              nullable: true
+              description: 'e.g. H, H1, X, OTC'
+            prescriptionRequired:
+              type: boolean
+            hsnCode:
+              type: string
+              nullable: true
+            gstSlab:
+              type: number
+              format: double
+              description: GST rate in percent (e.g. 5, 12, 18)
+            composition:
+              type: string
+              nullable: true
+            mrp:
+              type: number
+              format: double
+
+    Vendor:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+              nullable: true
+            contactPerson:
+              type: string
+              nullable: true
+            phone:
+              type: string
+              nullable: true
+            email:
+              type: string
+              nullable: true
+            address:
+              type: string
+              nullable: true
+            gstNumber:
+              type: string
+              nullable: true
+            drugLicenseNumber:
+              type: string
+              nullable: true
+            creditTermsDays:
+              type: integer
+            creditLimit:
+              type: number
+              format: double
+            outstandingBalance:
+              type: number
+              format: double
+
+    AppUser:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            username:
+              type: string
+              nullable: true
+            fullName:
+              type: string
+              nullable: true
+            email:
+              type: string
+              nullable: true
+            phone:
+              type: string
+              nullable: true
+            passwordHash:
+              type: string
+              nullable: true
+            isLocked:
+              type: boolean
+            lastLoginAt:
+              type: string
+              format: date-time
+              nullable: true
+
+    Role:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+              nullable: true
+            description:
+              type: string
+              nullable: true
+
+    UserRole:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            userId:
+              type: string
+              format: uuid
+            roleId:
+              type: string
+              format: uuid
+            assignedAt:
+              type: string
+              format: date-time
+
+    StorageZone:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+              nullable: true
+            zoneType:
+              type: string
+              nullable: true
+              description: 'e.g. Cold, Ambient, Controlled'
+            description:
+              type: string
+              nullable: true
+            temperatureRangeMin:
+              type: number
+              format: double
+              nullable: true
+            temperatureRangeMax:
+              type: number
+              format: double
+              nullable: true
+
+    Rack:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            storageZoneId:
+              type: string
+              format: uuid
+            label:
+              type: string
+              nullable: true
+            description:
+              type: string
+              nullable: true
+            capacity:
+              type: integer
+              nullable: true
+
+    DrugInventoryRackAssignment:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            drugInventoryId:
+              type: string
+              format: uuid
+            rackId:
+              type: string
+              format: uuid
+            quantityPlaced:
+              type: integer
+            placedAt:
+              type: string
+              format: date-time
+
+    ExpiryAlertConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            thresholdDays:
+              type: integer
+              description: Alert when expiry is within this many days
+            alertType:
+              type: string
+              nullable: true
+            isEnabled:
+              type: boolean
+
+    ExpiryRecord:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            drugInventoryId:
+              type: string
+              format: uuid
+            detectedAt:
+              type: string
+              format: date-time
+            expirationDate:
+              type: string
+              format: date-time
+            quantityAffected:
+              type: integer
+            status:
+              type: string
+              nullable: true
+              description: 'e.g. Detected, Quarantined, Returned, Disposed'
+            initiatedBy:
+              type: string
+              nullable: true
+            approvedBy:
+              type: string
+              nullable: true
+            approvedAt:
+              type: string
+              format: date-time
+              nullable: true
+            quarantineRackId:
+              type: string
+              format: uuid
+              nullable: true
+            notes:
+              type: string
+              nullable: true
+
+    DisposalRecord:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            expiryRecordId:
+              type: string
+              format: uuid
+            disposedAt:
+              type: string
+              format: date-time
+            quantityDisposed:
+              type: integer
+            disposalMethod:
+              type: string
+              nullable: true
+            disposedBy:
+              type: string
+              nullable: true
+            witnessedBy:
+              type: string
+              nullable: true
+            regulatoryReferenceNumber:
+              type: string
+              nullable: true
+            notes:
+              type: string
+              nullable: true
+
+    VendorExpiryReturnRequest:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            expiryRecordId:
+              type: string
+              format: uuid
+            vendorId:
+              type: string
+              format: uuid
+            requestedAt:
+              type: string
+              format: date-time
+            quantityToReturn:
+              type: integer
+            status:
+              type: string
+              nullable: true
+              description: 'e.g. Requested, Accepted, Rejected'
+            vendorResponseAt:
+              type: string
+              format: date-time
+              nullable: true
+            vendorNotes:
+              type: string
+              nullable: true
+
+    QuotationRequest:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            requestDate:
+              type: string
+              format: date-time
+            requiredByDate:
+              type: string
+              format: date-time
+              nullable: true
+            status:
+              type: string
+              nullable: true
+              description: 'e.g. Draft, Dispatched, Received, Closed'
+            notes:
+              type: string
+              nullable: true
+            requestedBy:
+              type: string
+              nullable: true
+
+    QuotationRequestItem:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            quotationRequestId:
+              type: string
+              format: uuid
+            drugId:
+              type: string
+              format: uuid
+            quantityRequired:
+              type: integer
+            notes:
+              type: string
+              nullable: true
+
+    Quotation:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            quotationRequestId:
+              type: string
+              format: uuid
+            vendorId:
+              type: string
+              format: uuid
+            quotationDate:
+              type: string
+              format: date-time
+            validUntil:
+              type: string
+              format: date-time
+              nullable: true
+            status:
+              type: string
+              nullable: true
+              description: 'e.g. Received, Accepted, Rejected'
+            totalAmount:
+              type: number
+              format: double
+            notes:
+              type: string
+              nullable: true
+
+    QuotationItem:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            quotationId:
+              type: string
+              format: uuid
+            drugId:
+              type: string
+              format: uuid
+            quantityOffered:
+              type: integer
+            unitPrice:
+              type: number
+              format: double
+            discountPercent:
+              type: number
+              format: double
+            gstRate:
+              type: number
+              format: double
+            totalAmount:
+              type: number
+              format: double
+            notes:
+              type: string
+              nullable: true
+
+    CustomerSubscription:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            patientId:
+              type: string
+              format: uuid
+            startDate:
+              type: string
+              format: date-time
+            endDate:
+              type: string
+              format: date-time
+              nullable: true
+            cycleDayOfMonth:
+              type: integer
+              description: Day of month for recurring fulfillment (1-28)
+            status:
+              type: string
+              nullable: true
+              description: 'e.g. Active, Paused, Cancelled'
+            approvedBy:
+              type: string
+              nullable: true
+            approvedAt:
+              type: string
+              format: date-time
+              nullable: true
+            approvalStatus:
+              type: string
+              nullable: true
+              description: 'e.g. Pending, Approved, Rejected'
+            notes:
+              type: string
+              nullable: true
+
+    CustomerSubscriptionItem:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            subscriptionId:
+              type: string
+              format: uuid
+            drugId:
+              type: string
+              format: uuid
+            quantityPerCycle:
+              type: integer
+            prescriptionId:
+              type: string
+              format: uuid
+              nullable: true
+
+    SubscriptionFulfillment:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            subscriptionId:
+              type: string
+              format: uuid
+            fulfillmentDate:
+              type: string
+              format: date-time
+            status:
+              type: string
+              nullable: true
+              description: 'e.g. Fulfilled, PartiallyFulfilled, Failed'
+            invoiceId:
+              type: string
+              format: uuid
+              nullable: true
+            notes:
+              type: string
+              nullable: true
+
+    DebtRecord:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            patientId:
+              type: string
+              format: uuid
+            invoiceId:
+              type: string
+              format: uuid
+            originalAmount:
+              type: number
+              format: double
+            remainingAmount:
+              type: number
+              format: double
+            dueDate:
+              type: string
+              format: date-time
+              nullable: true
+            status:
+              type: string
+              nullable: true
+              description: 'e.g. Outstanding, PartiallyPaid, Settled'
+            notes:
+              type: string
+              nullable: true
+
+    DebtPayment:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            debtRecordId:
+              type: string
+              format: uuid
+            paymentDate:
+              type: string
+              format: date-time
+            amountPaid:
+              type: number
+              format: double
+            paymentMethod:
+              type: string
+              nullable: true
+              description: 'e.g. Cash, UPI, Card, Bank Transfer'
+            receivedBy:
+              type: string
+              nullable: true
+            notes:
+              type: string
+              nullable: true
+
+    DebtReminder:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            debtRecordId:
+              type: string
+              format: uuid
+            sentAt:
+              type: string
+              format: date-time
+            channel:
+              type: string
+              nullable: true
+              description: 'e.g. SMS, WhatsApp, Email'
+            sentBy:
+              type: string
+              nullable: true
+            message:
+              type: string
+              nullable: true
+
+    DamageRecord:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            drugInventoryId:
+              type: string
+              format: uuid
+            quantityDamaged:
+              type: integer
+            damageType:
+              type: string
+              nullable: true
+            damagedAt:
+              type: string
+              format: date-time
+            discoveredBy:
+              type: string
+              nullable: true
+            status:
+              type: string
+              nullable: true
+              description: 'e.g. Reported, Quarantined, Disposed, Approved'
+            quarantineRackId:
+              type: string
+              format: uuid
+              nullable: true
+            stockTransactionId:
+              type: string
+              format: uuid
+              nullable: true
+            approvedBy:
+              type: string
+              nullable: true
+            approvedAt:
+              type: string
+              format: date-time
+              nullable: true
+            notes:
+              type: string
+              nullable: true
+
+    DamageDisposalRecord:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            damageRecordId:
+              type: string
+              format: uuid
+            disposedAt:
+              type: string
+              format: date-time
+            disposalMethod:
+              type: string
+              nullable: true
+            disposedBy:
+              type: string
+              nullable: true
+            notes:
+              type: string
+              nullable: true
+
+    DailyDiaryEntry:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            entryDate:
+              type: string
+              format: date-time
+            category:
+              type: string
+              nullable: true
+            title:
+              type: string
+              nullable: true
+            body:
+              type: string
+              nullable: true
+            drugId:
+              type: string
+              format: uuid
+              nullable: true
+            vendorId:
+              type: string
+              format: uuid
+              nullable: true
+            patientId:
+              type: string
+              format: uuid
+              nullable: true
+            referenceId:
+              type: string
+              format: uuid
+              nullable: true
+            referenceType:
+              type: string
+              nullable: true
+            priority:
+              type: string
+              nullable: true
+            createdBy:
+              type: string
+              nullable: true
+
+    Notification:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            notificationType:
+              type: string
+              nullable: true
+            channel:
+              type: string
+              nullable: true
+              description: 'e.g. SMS, Email, WhatsApp, InApp'
+            recipientType:
+              type: string
+              nullable: true
+            recipientId:
+              type: string
+              format: uuid
+            recipientContact:
+              type: string
+              nullable: true
+            subject:
+              type: string
+              nullable: true
+            body:
+              type: string
+              nullable: true
+            referenceId:
+              type: string
+              format: uuid
+              nullable: true
+            referenceType:
+              type: string
+              nullable: true
+            scheduledAt:
+              type: string
+              format: date-time
+            sentAt:
+              type: string
+              format: date-time
+              nullable: true
+            status:
+              type: string
+              nullable: true
+              description: 'e.g. Pending, Sent, Failed'
+            failureReason:
+              type: string
+              nullable: true
+            retryCount:
+              type: integer
+
+    Branch:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+              nullable: true
+            address:
+              type: string
+              nullable: true
+            gstin:
+              type: string
+              nullable: true
+            pharmacyLicenseNumber:
+              type: string
+              nullable: true
+            phone:
+              type: string
+              nullable: true
+            email:
+              type: string
+              nullable: true
+            managerUserId:
+              type: string
+              format: uuid
+              nullable: true
+
+    PaymentLedger:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            vendorId:
+              type: string
+              format: uuid
+            purchaseOrderId:
+              type: string
+              format: uuid
+              nullable: true
+            invoicedAmount:
+              type: number
+              format: double
+            paidAmount:
+              type: number
+              format: double
+            dueDate:
+              type: string
+              format: date-time
+            status:
+              type: string
+              nullable: true
+              description: 'e.g. Unpaid, PartiallyPaid, Paid'
+            notes:
+              type: string
+              nullable: true
+
+    PurchaseOrder:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            vendorId:
+              type: string
+              format: uuid
+            orderDate:
+              type: string
+              format: date-time
+            status:
+              type: string
+              nullable: true
+              description: 'e.g. Draft, Approved, Rejected, Received, PartiallyReceived'
+            notes:
+              type: string
+              nullable: true
+            totalAmount:
+              type: number
+              format: double
+            quotationId:
+              type: string
+              format: uuid
+              nullable: true
+            poNumber:
+              type: string
+              nullable: true
+            approvedBy:
+              type: string
+              nullable: true
+            approvedAt:
+              type: string
+              format: date-time
+              nullable: true
+            parentPurchaseOrderId:
+              type: string
+              format: uuid
+              nullable: true
+            branchId:
+              type: string
+              format: uuid
+              nullable: true
+
+    PurchaseOrderItem:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            purchaseOrderId:
+              type: string
+              format: uuid
+            drugId:
+              type: string
+              format: uuid
+            quantityOrdered:
+              type: integer
+            quantityReceived:
+              type: integer
+            unitPrice:
+              type: number
+              format: double
+            batchNumber:
+              type: string
+              nullable: true
+            expirationDate:
+              type: string
+              format: date-time
+              nullable: true
+
+    AuditLog:
+      allOf:
+        - $ref: '#/components/schemas/BaseObject'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            drugId:
+              type: string
+              format: uuid
+            drugName:
+              type: string
+              nullable: true
+            scheduleCategory:
+              type: string
+              nullable: true
+            customerInvoiceId:
+              type: string
+              format: uuid
+            prescriptionId:
+              type: string
+              format: uuid
+              nullable: true
+            patientId:
+              type: string
+              format: uuid
+              nullable: true
+            quantityDispensed:
+              type: integer
+            performedBy:
+              type: string
+              nullable: true
+            performedAt:
+              type: string
+              format: date-time
+            retentionUntil:
+              type: string
+              format: date-time
+
+    DailySalesReport:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        invoiceCount:
+          type: integer
+        subTotal:
+          type: number
+          format: double
+        totalDiscount:
+          type: number
+          format: double
+        totalCgst:
+          type: number
+          format: double
+        totalSgst:
+          type: number
+          format: double
+        totalIgst:
+          type: number
+          format: double
+        gstAmount:
+          type: number
+          format: double
+        netAmount:
+          type: number
+          format: double

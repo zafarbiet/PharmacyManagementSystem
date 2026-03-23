@@ -2,8 +2,12 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using PharmacyManagementSystem.Common.DrugInventory;
 using PharmacyManagementSystem.Common.Exceptions;
+using PharmacyManagementSystem.Server.Drug;
 using PharmacyManagementSystem.Server.DrugInventory;
+using PharmacyManagementSystem.Server.ExpiryAlertConfiguration;
+using PharmacyManagementSystem.Server.Notification;
 using PharmacyManagementSystem.Server.Unit.DrugInventory.Data;
 
 namespace PharmacyManagementSystem.Server.Unit.DrugInventory;
@@ -13,13 +17,28 @@ public class TestSaveDrugInventoryAction
 {
     private readonly ILogger<SaveDrugInventoryAction> _logger;
     private readonly IDrugInventoryRepository _repository;
+    private readonly IDrugRepository _drugRepository;
+    private readonly IExpiryAlertConfigurationRepository _expiryAlertConfigRepository;
+    private readonly ISaveNotificationAction _notificationAction;
     private readonly SaveDrugInventoryAction _action;
 
     public TestSaveDrugInventoryAction()
     {
         _logger = Substitute.For<ILogger<SaveDrugInventoryAction>>();
         _repository = Substitute.For<IDrugInventoryRepository>();
-        _action = new SaveDrugInventoryAction(_logger, _repository);
+        _drugRepository = Substitute.For<IDrugRepository>();
+        _expiryAlertConfigRepository = Substitute.For<IExpiryAlertConfigurationRepository>();
+        _notificationAction = Substitute.For<ISaveNotificationAction>();
+
+        // Default: drug not found (no reorder alert), no expiry configs (uses default threshold)
+        _drugRepository.GetByIdAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((Common.Drug.Drug?)null);
+        _expiryAlertConfigRepository.GetByFilterCriteriaAsync(
+            Arg.Any<Common.ExpiryAlertConfiguration.ExpiryAlertConfigurationFilter>(),
+            Arg.Any<CancellationToken>()).Returns((IReadOnlyCollection<Common.ExpiryAlertConfiguration.ExpiryAlertConfiguration>?)null);
+        _repository.GetByFilterCriteriaAsync(Arg.Any<DrugInventoryFilter>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyCollection<Common.DrugInventory.DrugInventory>?)null);
+
+        _action = new SaveDrugInventoryAction(_logger, _repository, _drugRepository, _expiryAlertConfigRepository, _notificationAction);
     }
 
     [TestMethod]

@@ -6,7 +6,11 @@ namespace PharmacyManagementSystem.Server.Data.SqlServer.Drug;
 
 public static class DrugDatabaseCommandText
 {
-    private const string SelectColumns = "Id, Name, GenericName, ManufacturerName, CategoryId, UnitOfMeasure, ReorderLevel, BrandName, DosageForm, Strength, Description, DrugLicenseNumber, ApprovalDate, ScheduleCategory, PrescriptionRequired, UpdatedAt, UpdatedBy, IsActive";
+    private const string SelectColumns =
+        "Id, Name, GenericName, ManufacturerName, CategoryId, UnitOfMeasure, ReorderLevel, " +
+        "BrandName, DosageForm, Strength, Description, DrugLicenseNumber, ApprovalDate, " +
+        "ScheduleCategory, PrescriptionRequired, HsnCode, GstSlab, Composition, Mrp, " +
+        "UpdatedAt, UpdatedBy, IsActive";
 
     public static Task<DatabaseSqlWithParameters> GetSelectSql(DrugFilter filter)
     {
@@ -37,6 +41,12 @@ public static class DrugDatabaseCommandText
         {
             sql += " AND CategoryId = @CategoryId";
             parameters.Add("CategoryId", filter.CategoryId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Composition))
+        {
+            sql += " AND Composition LIKE @Composition";
+            parameters.Add("Composition", $"%{filter.Composition}%");
         }
 
         if (filter.DateFrom.HasValue)
@@ -93,15 +103,27 @@ public static class DrugDatabaseCommandText
         parameters.Add("ApprovalDate", drug.ApprovalDate);
         parameters.Add("ScheduleCategory", drug.ScheduleCategory);
         parameters.Add("PrescriptionRequired", drug.PrescriptionRequired);
+        parameters.Add("HsnCode", drug.HsnCode);
+        parameters.Add("GstSlab", drug.GstSlab);
+        parameters.Add("Composition", drug.Composition);
+        parameters.Add("Mrp", drug.Mrp);
         parameters.Add("UpdatedAt", DateTimeOffset.UtcNow);
         parameters.Add("UpdatedBy", drug.UpdatedBy);
         parameters.Add("IsActive", true);
 
         return Task.FromResult(new DatabaseSqlWithParameters
         {
-            SqlStatement = @"INSERT INTO PMS.Drugs (Id, Name, GenericName, ManufacturerName, CategoryId, UnitOfMeasure, ReorderLevel, BrandName, DosageForm, Strength, Description, DrugLicenseNumber, ApprovalDate, ScheduleCategory, PrescriptionRequired, UpdatedAt, UpdatedBy, IsActive)
+            SqlStatement = @"INSERT INTO PMS.Drugs
+                             (Id, Name, GenericName, ManufacturerName, CategoryId, UnitOfMeasure, ReorderLevel,
+                              BrandName, DosageForm, Strength, Description, DrugLicenseNumber, ApprovalDate,
+                              ScheduleCategory, PrescriptionRequired, HsnCode, GstSlab, Composition, Mrp,
+                              UpdatedAt, UpdatedBy, IsActive)
                              OUTPUT INSERTED.*
-                             VALUES (NEWID(), @Name, @GenericName, @ManufacturerName, @CategoryId, @UnitOfMeasure, @ReorderLevel, @BrandName, @DosageForm, @Strength, @Description, @DrugLicenseNumber, @ApprovalDate, @ScheduleCategory, @PrescriptionRequired, @UpdatedAt, @UpdatedBy, @IsActive)",
+                             VALUES
+                             (NEWID(), @Name, @GenericName, @ManufacturerName, @CategoryId, @UnitOfMeasure, @ReorderLevel,
+                              @BrandName, @DosageForm, @Strength, @Description, @DrugLicenseNumber, @ApprovalDate,
+                              @ScheduleCategory, @PrescriptionRequired, @HsnCode, @GstSlab, @Composition, @Mrp,
+                              @UpdatedAt, @UpdatedBy, @IsActive)",
             Parameters = parameters
         });
     }
@@ -126,6 +148,10 @@ public static class DrugDatabaseCommandText
         parameters.Add("ApprovalDate", drug.ApprovalDate);
         parameters.Add("ScheduleCategory", drug.ScheduleCategory);
         parameters.Add("PrescriptionRequired", drug.PrescriptionRequired);
+        parameters.Add("HsnCode", drug.HsnCode);
+        parameters.Add("GstSlab", drug.GstSlab);
+        parameters.Add("Composition", drug.Composition);
+        parameters.Add("Mrp", drug.Mrp);
         parameters.Add("UpdatedAt", DateTimeOffset.UtcNow);
         parameters.Add("UpdatedBy", drug.UpdatedBy);
 
@@ -137,6 +163,7 @@ public static class DrugDatabaseCommandText
                                  BrandName = @BrandName, DosageForm = @DosageForm, Strength = @Strength,
                                  Description = @Description, DrugLicenseNumber = @DrugLicenseNumber, ApprovalDate = @ApprovalDate,
                                  ScheduleCategory = @ScheduleCategory, PrescriptionRequired = @PrescriptionRequired,
+                                 HsnCode = @HsnCode, GstSlab = @GstSlab, Composition = @Composition, Mrp = @Mrp,
                                  UpdatedAt = @UpdatedAt, UpdatedBy = @UpdatedBy
                              OUTPUT INSERTED.*
                              WHERE Id = @Id",

@@ -85,4 +85,18 @@ public class SqlServerCustomerInvoiceStorageClient(ILogger<SqlServerCustomerInvo
 
         _logger.LogDebug("StorageClient: Removed customer invoice with id: {Id}.", id);
     }
+
+    public async Task<string> GetNextInvoiceNumberAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("StorageClient: Getting next invoice number.");
+
+        var sql = await CustomerInvoiceDatabaseCommandText.GetNextInvoiceNumberSql().ConfigureAwait(false);
+        var result = await _dbClient.QueryAsync<string>(sql, cancellationToken).ConfigureAwait(false);
+
+        var invoiceNumber = result.FirstOrDefault() ?? "INV/0000-00/00001";
+
+        _logger.LogDebug("StorageClient: Next invoice number is {InvoiceNumber}.", invoiceNumber);
+
+        return invoiceNumber;
+    }
 }
