@@ -7,6 +7,7 @@ using PharmacyManagementSystem.Common.Role;
 using PharmacyManagementSystem.Common.UserRole;
 using PharmacyManagementSystem.Common.StorageZone;
 using PharmacyManagementSystem.Common.Rack;
+using PharmacyManagementSystem.Common.DrugInventory;
 using PharmacyManagementSystem.Common.DrugInventoryRackAssignment;
 using PharmacyManagementSystem.Common.ExpiryAlertConfiguration;
 using PharmacyManagementSystem.Common.ExpiryRecord;
@@ -35,6 +36,7 @@ using PharmacyManagementSystem.Server.Role;
 using PharmacyManagementSystem.Server.UserRole;
 using PharmacyManagementSystem.Server.StorageZone;
 using PharmacyManagementSystem.Server.Rack;
+using PharmacyManagementSystem.Server.DrugInventory;
 using PharmacyManagementSystem.Server.DrugInventoryRackAssignment;
 using PharmacyManagementSystem.Server.ExpiryAlertConfiguration;
 using PharmacyManagementSystem.Server.ExpiryRecord;
@@ -79,6 +81,7 @@ public static class ControllerExtensions
         app.AddUserRoleApis();
         app.AddStorageZoneApis();
         app.AddRackApis();
+        app.AddDrugInventoryApis();
         app.AddDrugInventoryRackAssignmentApis();
         app.AddExpiryAlertConfigurationApis();
         app.AddExpiryRecordApis();
@@ -644,6 +647,72 @@ public static class ControllerExtensions
             await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
             return Results.NoContent();
         }).WithName("DeleteRack");
+    }
+
+    private static void AddDrugInventoryApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/drug-inventories").WithTags("DrugInventories");
+
+        group.MapGet("/", async (
+            [FromServices] IGetDrugInventoryAction action,
+            [AsParameters] DrugInventoryFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetDrugInventories");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetDrugInventoryAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetDrugInventoryById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.DrugInventory.DrugInventory inventory,
+            [FromServices] ISaveDrugInventoryAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(inventory, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/drug-inventories/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreateDrugInventory");
+
+        group.MapPut("/{id}", async (
+            Guid id,
+            [FromBody] Common.DrugInventory.DrugInventory inventory,
+            [FromServices] ISaveDrugInventoryAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                inventory.Id = id;
+                var result = await action.UpdateAsync(inventory, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("UpdateDrugInventory");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISaveDrugInventoryAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeleteDrugInventory");
     }
 
     private static void AddDrugInventoryRackAssignmentApis(this WebApplication app)
