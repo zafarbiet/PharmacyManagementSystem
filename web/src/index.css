@@ -1,0 +1,7 @@
+.row-expired td {
+  background-color: #fff1f0 !important;
+}
+
+.row-expiring td {
+  background-color: #fff7e6 !important;
+}

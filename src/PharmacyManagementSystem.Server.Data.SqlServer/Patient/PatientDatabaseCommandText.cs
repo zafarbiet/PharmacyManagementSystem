@@ -15,7 +15,7 @@ public static class PatientDatabaseCommandText
         var sql = $"SELECT {SelectColumns} FROM PMS.Patients WHERE 1=1";
         var parameters = new DynamicParameters();
 
-        if (filter.Id != Guid.Empty)
+        if (filter.Id.HasValue && filter.Id.Value != Guid.Empty)
         {
             sql += " AND Id = @Id";
             parameters.Add("Id", filter.Id);

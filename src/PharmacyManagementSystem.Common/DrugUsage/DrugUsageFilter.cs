@@ -2,5 +2,5 @@ namespace PharmacyManagementSystem.Common.DrugUsage;
 
 public class DrugUsageFilter : FilterBase
 {
-    public Guid DrugId { get; set; }
+    public Guid? DrugId { get; set; }
 }
