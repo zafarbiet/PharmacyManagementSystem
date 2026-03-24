@@ -68,6 +68,20 @@ public static class AppUserDatabaseCommandText
         });
     }
 
+    public static Task<DatabaseSqlWithParameters> GetSelectByUsernameSql(string username)
+    {
+        ArgumentNullException.ThrowIfNull(username);
+
+        var parameters = new DynamicParameters();
+        parameters.Add("Username", username);
+
+        return Task.FromResult(new DatabaseSqlWithParameters
+        {
+            SqlStatement = $"SELECT {SelectColumns} FROM PMS.Users WHERE Username = @Username AND IsActive = 1",
+            Parameters = parameters
+        });
+    }
+
     public static Task<DatabaseSqlWithParameters> GetInsertSql(Common.AppUser.AppUser appUser)
     {
         ArgumentNullException.ThrowIfNull(appUser);

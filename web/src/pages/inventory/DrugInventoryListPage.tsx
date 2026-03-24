@@ -10,13 +10,17 @@ import {
   Statistic,
   Card,
   Tooltip,
+  Popconfirm,
+  message,
 } from 'antd';
-import { SearchOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons';
+import { SearchOutlined, ReloadOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { useDrugInventory } from '@/hooks/useDrugInventory';
 import { useDrugs } from '@/hooks/useDrugs';
+import { useDeleteDrugInventory } from '@/hooks/useDrugInventoryMutations';
 import ExpiryTag from '@/components/ExpiryTag';
+import DrugInventoryFormModal from '@/components/DrugInventoryFormModal';
 import type { DrugInventory } from '@/api/localTypes';
 
 const { Title } = Typography;
@@ -29,9 +33,12 @@ export default function DrugInventoryListPage() {
   const [drugSearch, setDrugSearch] = useState('');
   const [appliedBatch, setAppliedBatch] = useState('');
   const [appliedDrug, setAppliedDrug] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<DrugInventory | null>(null);
 
   const drugsQuery = useDrugs();
   const inventoryQuery = useDrugInventory();
+  const deleteInv = useDeleteDrugInventory();
 
   const drugMap = useMemo(() => {
     const map = new Map<string, { name: string; mrp: number; reorderLevel: number }>();
@@ -89,6 +96,17 @@ export default function DrugInventoryListPage() {
     setDrugSearch('');
     setAppliedBatch('');
     setAppliedDrug('');
+  };
+
+  const handleAdd = () => { setEditingEntry(null); setModalOpen(true); };
+  const handleEdit = (record: DrugInventory) => { setEditingEntry(record); setModalOpen(true); };
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteInv.mutateAsync(id);
+      message.success('Entry deleted.');
+    } catch {
+      message.error('Failed to delete entry.');
+    }
   };
 
   const columns: ColumnsType<DrugInventory> = [
@@ -160,6 +178,25 @@ export default function DrugInventoryListPage() {
       width: 150,
       render: (v: string) => dayjs(v).format('DD MMM YYYY HH:mm'),
     },
+    {
+      title: 'Actions',
+      key: 'actions',
+      width: 90,
+      render: (_: unknown, record: DrugInventory) => (
+        <Space size={4}>
+          <Button type="text" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+          <Popconfirm
+            title="Delete this entry?"
+            description="This will soft-delete the inventory batch."
+            onConfirm={() => handleDelete(record.id)}
+            okText="Delete"
+            okType="danger"
+          >
+            <Button type="text" size="small" danger icon={<DeleteOutlined />} loading={deleteInv.isPending} />
+          </Popconfirm>
+        </Space>
+      ),
+    },
   ];
 
   return (
@@ -171,7 +208,7 @@ export default function DrugInventoryListPage() {
           </Title>
         </Col>
         <Col>
-          <Button type="primary" icon={<PlusOutlined />} disabled>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
             Add Batch
           </Button>
         </Col>
@@ -269,6 +306,12 @@ export default function DrugInventoryListPage() {
           if (expiry.diff(now, 'day') <= WARN_DAYS) return 'row-expiring';
           return '';
         }}
+      />
+
+      <DrugInventoryFormModal
+        open={modalOpen}
+        inventory={editingEntry}
+        onClose={() => setModalOpen(false)}
       />
     </Space>
   );

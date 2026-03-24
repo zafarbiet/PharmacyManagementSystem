@@ -7,6 +7,10 @@ import {
   WarningOutlined,
   TeamOutlined,
   BarChartOutlined,
+  UserOutlined,
+  SettingOutlined,
+  BankOutlined,
+  TagsOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -14,39 +18,58 @@ const { Sider } = Layout;
 
 const menuItems = [
   {
+    key: '/',
+    icon: <BarChartOutlined />,
+    label: 'Dashboard',
+  },
+  {
     key: '/inventory/drugs',
     icon: <MedicineBoxOutlined />,
     label: 'Drug Inventory',
   },
   {
+    key: '/drugs',
+    icon: <MedicineBoxOutlined />,
+    label: 'Drug Master',
+  },
+  {
     key: '/purchase-orders',
     icon: <ShoppingCartOutlined />,
     label: 'Purchase Orders',
-    disabled: true,
   },
   {
     key: '/invoices',
     icon: <FileTextOutlined />,
     label: 'Invoices',
-    disabled: true,
   },
   {
     key: '/expired-drugs',
     icon: <WarningOutlined />,
     label: 'Expiry Management',
-    disabled: true,
   },
   {
     key: '/vendors',
     icon: <TeamOutlined />,
     label: 'Vendors',
-    disabled: true,
   },
   {
     key: '/reports',
     icon: <BarChartOutlined />,
     label: 'Reports',
-    disabled: true,
+  },
+  {
+    key: '/users',
+    icon: <UserOutlined />,
+    label: 'Users',
+  },
+  {
+    key: 'settings',
+    icon: <SettingOutlined />,
+    label: 'Settings',
+    children: [
+      { key: '/settings/branches', icon: <BankOutlined />, label: 'Branches' },
+      { key: '/settings/drug-categories', icon: <TagsOutlined />, label: 'Drug Categories' },
+    ],
   },
 ];
 
