@@ -12,6 +12,10 @@ import InvoicesListPage from '@/pages/invoices/InvoicesListPage';
 import UsersListPage from '@/pages/users/UsersListPage';
 import BranchesListPage from '@/pages/settings/BranchesListPage';
 import DrugCategoriesListPage from '@/pages/settings/DrugCategoriesListPage';
+import QuotationRequestsListPage from '@/pages/quotations/QuotationRequestsListPage';
+import QuotationsListPage from '@/pages/quotations/QuotationsListPage';
+import PatientsListPage from '@/pages/patients/PatientsListPage';
+import PatientPrescriptionsPage from '@/pages/patients/PatientPrescriptionsPage';
 import { useGlobalStore } from '@/store/globalStore';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -76,6 +80,22 @@ export const router = createBrowserRouter([
       {
         path: 'settings/drug-categories',
         element: <DrugCategoriesListPage />,
+      },
+      {
+        path: 'patients',
+        element: <PatientsListPage />,
+      },
+      {
+        path: 'patients/:patientId/prescriptions',
+        element: <PatientPrescriptionsPage />,
+      },
+      {
+        path: 'quotations/rfq',
+        element: <QuotationRequestsListPage />,
+      },
+      {
+        path: 'quotations',
+        element: <QuotationsListPage />,
       },
     ],
   },
