@@ -199,6 +199,92 @@ export interface CustomerInvoice {
   isActive: boolean;
 }
 
+export interface Patient {
+  id: string;
+  name: string | null;
+  contactNumber: string | null;
+  email: string | null;
+  address: string | null;
+  age: number | null;
+  gstin: string | null;
+  creditBalance: number;
+  isSubscriber: boolean;
+  isActive: boolean;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface Prescription {
+  id: string;
+  patientId: string;
+  prescribingDoctor: string | null;
+  doctorRegistrationNumber: string | null;
+  prescriptionDate: string;
+  patientAge: number | null;
+  notes: string | null;
+  isActive: boolean;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface PrescriptionItem {
+  id: string;
+  prescriptionId: string;
+  drugId: string;
+  dosage: string | null;
+  quantity: number;
+  instructions: string | null;
+  isActive: boolean;
+}
+
+export interface QuotationRequest {
+  id: string;
+  requestDate: string;
+  requiredByDate: string | null;
+  status: string | null;
+  notes: string | null;
+  requestedBy: string | null;
+  isActive: boolean;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface QuotationRequestItem {
+  id: string;
+  quotationRequestId: string;
+  drugId: string;
+  quantityRequired: number;
+  notes: string | null;
+  isActive: boolean;
+}
+
+export interface Quotation {
+  id: string;
+  quotationRequestId: string;
+  vendorId: string;
+  quotationDate: string;
+  validUntil: string | null;
+  status: string | null;
+  totalAmount: number;
+  notes: string | null;
+  isActive: boolean;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface QuotationItem {
+  id: string;
+  quotationId: string;
+  drugId: string;
+  quantityOffered: number;
+  unitPrice: number;
+  discountPercent: number;
+  gstRate: number;
+  totalAmount: number;
+  notes: string | null;
+  isActive: boolean;
+}
+
 export interface CustomerInvoiceItem {
   id: string;
   invoiceId: string;

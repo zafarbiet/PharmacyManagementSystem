@@ -11,6 +11,9 @@ import {
   SettingOutlined,
   BankOutlined,
   TagsOutlined,
+  SolutionOutlined,
+  SendOutlined,
+  ContactsOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -38,6 +41,11 @@ const menuItems = [
     label: 'Purchase Orders',
   },
   {
+    key: '/patients',
+    icon: <ContactsOutlined />,
+    label: 'Patients',
+  },
+  {
     key: '/invoices',
     icon: <FileTextOutlined />,
     label: 'Invoices',
@@ -51,6 +59,15 @@ const menuItems = [
     key: '/vendors',
     icon: <TeamOutlined />,
     label: 'Vendors',
+  },
+  {
+    key: 'quotations',
+    icon: <SolutionOutlined />,
+    label: 'Quotations',
+    children: [
+      { key: '/quotations/rfq', icon: <SendOutlined />, label: 'RFQ' },
+      { key: '/quotations', icon: <FileTextOutlined />, label: 'Received' },
+    ],
   },
   {
     key: '/reports',

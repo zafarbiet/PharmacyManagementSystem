@@ -1,0 +1,121 @@
+using Dapper;
+using PharmacyManagementSystem.Common.DrugCategory;
+using PharmacyManagementSystem.Server.Data.PostgreSql.Infrastructure;
+
+namespace PharmacyManagementSystem.Server.Data.PostgreSql.DrugCategory;
+
+public static class DrugCategoryDatabaseCommandText
+{
+    public static Task<DatabaseSqlWithParameters> GetSelectSql(DrugCategoryFilter filter)
+    {
+        ArgumentNullException.ThrowIfNull(filter);
+
+        var sql = "SELECT Id, Name, Description, UpdatedAt, UpdatedBy, IsActive FROM PMS.DrugCategories WHERE 1=1";
+        var parameters = new DynamicParameters();
+
+        if (filter.Id.HasValue && filter.Id.Value != Guid.Empty)
+        {
+            sql += " AND Id = @Id";
+            parameters.Add("Id", filter.Id);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Name))
+        {
+            sql += " AND Name LIKE @Name";
+            parameters.Add("Name", $"%{filter.Name}%");
+        }
+
+        if (filter.DateFrom.HasValue)
+        {
+            sql += " AND UpdatedAt >= @DateFrom";
+            parameters.Add("DateFrom", filter.DateFrom.Value);
+        }
+
+        if (filter.DateTo.HasValue)
+        {
+            sql += " AND UpdatedAt <= @DateTo";
+            parameters.Add("DateTo", filter.DateTo.Value);
+        }
+
+        sql += " AND IsActive = true";
+
+        return Task.FromResult(new DatabaseSqlWithParameters
+        {
+            SqlStatement = sql,
+            Parameters = parameters
+        });
+    }
+
+    public static Task<DatabaseSqlWithParameters> GetSelectByIdSql(string id)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+
+        var parameters = new DynamicParameters();
+        parameters.Add("Id", Guid.Parse(id));
+
+        return Task.FromResult(new DatabaseSqlWithParameters
+        {
+            SqlStatement = "SELECT Id, Name, Description, UpdatedAt, UpdatedBy, IsActive FROM PMS.DrugCategories WHERE Id = @Id AND IsActive = true",
+            Parameters = parameters
+        });
+    }
+
+    public static Task<DatabaseSqlWithParameters> GetInsertSql(Common.DrugCategory.DrugCategory category)
+    {
+        ArgumentNullException.ThrowIfNull(category);
+
+        var parameters = new DynamicParameters();
+        parameters.Add("Name", category.Name);
+        parameters.Add("Description", category.Description);
+        parameters.Add("UpdatedAt", DateTimeOffset.UtcNow);
+        parameters.Add("UpdatedBy", category.UpdatedBy);
+        parameters.Add("IsActive", true);
+
+        return Task.FromResult(new DatabaseSqlWithParameters
+        {
+            SqlStatement = @"INSERT INTO PMS.DrugCategories (Id, Name, Description, UpdatedAt, UpdatedBy, IsActive)
+                             VALUES (gen_random_uuid(), @Name, @Description, @UpdatedAt, @UpdatedBy, @IsActive)
+                             RETURNING *",
+            Parameters = parameters
+        });
+    }
+
+    public static Task<DatabaseSqlWithParameters> GetUpdateSql(Common.DrugCategory.DrugCategory category)
+    {
+        ArgumentNullException.ThrowIfNull(category);
+
+        var parameters = new DynamicParameters();
+        parameters.Add("Id", category.Id);
+        parameters.Add("Name", category.Name);
+        parameters.Add("Description", category.Description);
+        parameters.Add("UpdatedAt", DateTimeOffset.UtcNow);
+        parameters.Add("UpdatedBy", category.UpdatedBy);
+
+        return Task.FromResult(new DatabaseSqlWithParameters
+        {
+            SqlStatement = @"UPDATE PMS.DrugCategories
+                             SET Name = @Name, Description = @Description, UpdatedAt = @UpdatedAt, UpdatedBy = @UpdatedBy
+                             WHERE Id = @Id
+                             RETURNING *",
+            Parameters = parameters
+        });
+    }
+
+    public static Task<DatabaseSqlWithParameters> GetSoftDeleteSql(Guid id, string updatedBy)
+    {
+        ArgumentNullException.ThrowIfNull(updatedBy);
+
+        var parameters = new DynamicParameters();
+        parameters.Add("Id", id);
+        parameters.Add("UpdatedAt", DateTimeOffset.UtcNow);
+        parameters.Add("UpdatedBy", updatedBy);
+
+        return Task.FromResult(new DatabaseSqlWithParameters
+        {
+            SqlStatement = @"UPDATE PMS.DrugCategories
+                             SET IsActive = false, UpdatedAt = @UpdatedAt, UpdatedBy = @UpdatedBy
+                             WHERE Id = @Id",
+            Parameters = parameters
+        });
+    }
+}

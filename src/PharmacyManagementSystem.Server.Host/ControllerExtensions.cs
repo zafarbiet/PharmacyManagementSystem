@@ -70,8 +70,14 @@ using PharmacyManagementSystem.Server.Auth;
 using PharmacyManagementSystem.Common.Auth;
 using PharmacyManagementSystem.Common.CustomerInvoice;
 using PharmacyManagementSystem.Common.CustomerInvoiceItem;
+using PharmacyManagementSystem.Common.Patient;
+using PharmacyManagementSystem.Common.Prescription;
+using PharmacyManagementSystem.Common.PrescriptionItem;
 using PharmacyManagementSystem.Server.CustomerInvoice;
 using PharmacyManagementSystem.Server.CustomerInvoiceItem;
+using PharmacyManagementSystem.Server.Patient;
+using PharmacyManagementSystem.Server.Prescription;
+using PharmacyManagementSystem.Server.PrescriptionItem;
 
 namespace PharmacyManagementSystem.Server.Host;
 
@@ -112,6 +118,9 @@ public static class ControllerExtensions
         app.AddPurchaseOrderApis();
         app.AddPurchaseOrderItemApis();
         app.AddAuditLogApis();
+        app.AddPatientApis();
+        app.AddPrescriptionApis();
+        app.AddPrescriptionItemApis();
         app.AddReportApis();
         app.AddCustomerInvoiceApis();
         app.AddCustomerInvoiceItemApis();
@@ -2429,6 +2438,24 @@ public static class ControllerExtensions
             var result = await reportService.GetDailySalesReportAsync(date, cancellationToken).ConfigureAwait(false);
             return Results.Ok(result);
         }).WithName("GetDailySalesReport");
+
+        group.MapGet("/monthly-sales", async (
+            int year,
+            int month,
+            [FromServices] IReportService reportService,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await reportService.GetMonthlySalesReportAsync(year, month, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetMonthlySalesReport");
+
+        group.MapGet("/stock-valuation", async (
+            [FromServices] IReportService reportService,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await reportService.GetStockValuationAsync(cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetStockValuation");
     }
 
     private static void AddCustomerInvoiceApis(this WebApplication app)
@@ -2585,5 +2612,203 @@ public static class ControllerExtensions
                 return Results.UnprocessableEntity(ex.Message);
             }
         }).WithName("Login").AllowAnonymous();
+    }
+
+    private static void AddPatientApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/patients").WithTags("Patients");
+
+        group.MapGet("/", async (
+            [FromServices] IGetPatientAction action,
+            [AsParameters] PatientFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetPatients");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetPatientAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetPatientById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.Patient.Patient patient,
+            [FromServices] ISavePatientAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(patient, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/patients/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreatePatient");
+
+        group.MapPut("/{id}", async (
+            Guid id,
+            [FromBody] Common.Patient.Patient patient,
+            [FromServices] ISavePatientAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                patient.Id = id;
+                var result = await action.UpdateAsync(patient, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("UpdatePatient");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISavePatientAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeletePatient");
+    }
+
+    private static void AddPrescriptionApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/prescriptions").WithTags("Prescriptions");
+
+        group.MapGet("/", async (
+            [FromServices] IGetPrescriptionAction action,
+            [AsParameters] PrescriptionFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetPrescriptions");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetPrescriptionAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetPrescriptionById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.Prescription.Prescription prescription,
+            [FromServices] ISavePrescriptionAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(prescription, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/prescriptions/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreatePrescription");
+
+        group.MapPut("/{id}", async (
+            Guid id,
+            [FromBody] Common.Prescription.Prescription prescription,
+            [FromServices] ISavePrescriptionAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                prescription.Id = id;
+                var result = await action.UpdateAsync(prescription, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("UpdatePrescription");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISavePrescriptionAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeletePrescription");
+    }
+
+    private static void AddPrescriptionItemApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/prescription-items").WithTags("PrescriptionItems");
+
+        group.MapGet("/", async (
+            [FromServices] IGetPrescriptionItemAction action,
+            [AsParameters] PrescriptionItemFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetPrescriptionItems");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetPrescriptionItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetPrescriptionItemById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.PrescriptionItem.PrescriptionItem prescriptionItem,
+            [FromServices] ISavePrescriptionItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(prescriptionItem, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/prescription-items/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreatePrescriptionItem");
+
+        group.MapPut("/{id}", async (
+            Guid id,
+            [FromBody] Common.PrescriptionItem.PrescriptionItem prescriptionItem,
+            [FromServices] ISavePrescriptionItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                prescriptionItem.Id = id;
+                var result = await action.UpdateAsync(prescriptionItem, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("UpdatePrescriptionItem");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISavePrescriptionItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeletePrescriptionItem");
     }
 }
