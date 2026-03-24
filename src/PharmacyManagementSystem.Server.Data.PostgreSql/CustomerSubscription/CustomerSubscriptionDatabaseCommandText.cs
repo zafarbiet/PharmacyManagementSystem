@@ -21,7 +21,7 @@ public static class CustomerSubscriptionDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.PatientId != Guid.Empty)
+        if (filter.PatientId.HasValue && filter.PatientId.Value != Guid.Empty)
         {
             sql += " AND PatientId = @PatientId";
             parameters.Add("PatientId", filter.PatientId);

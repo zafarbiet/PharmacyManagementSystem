@@ -6,6 +6,9 @@ import {
   TeamOutlined,
   WarningOutlined,
   BarChartOutlined,
+  ContactsOutlined,
+  CreditCardOutlined,
+  RiseOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
@@ -15,7 +18,9 @@ import { useDrugs } from '@/hooks/useDrugs';
 import { useVendors } from '@/hooks/useVendors';
 import { usePurchaseOrders } from '@/hooks/usePurchaseOrders';
 import { useExpiryRecords } from '@/hooks/useExpiryRecords';
-import { useDailySalesReport } from '@/hooks/useReports';
+import { useDailySalesReport, useMonthlySalesReport, useStockValuationReport } from '@/hooks/useReports';
+import { usePatients } from '@/hooks/usePatients';
+import { useDebtRecords } from '@/hooks/useDebtRecords';
 import type { DrugInventory } from '@/api/localTypes';
 
 const { Title } = Typography;
@@ -28,12 +33,14 @@ function StatCard({
   icon,
   color,
   onClick,
+  prefix,
 }: {
   title: string;
   value: number | string;
   icon: React.ReactNode;
   color?: string;
   onClick?: () => void;
+  prefix?: string;
 }) {
   return (
     <Card
@@ -45,7 +52,12 @@ function StatCard({
       <Statistic
         title={title}
         value={value}
-        prefix={<span style={{ color: color ?? '#1677ff', marginRight: 4 }}>{icon}</span>}
+        prefix={
+          <>
+            <span style={{ color: color ?? '#1677ff', marginRight: 4 }}>{icon}</span>
+            {prefix}
+          </>
+        }
         valueStyle={{ color: color ?? '#1677ff' }}
       />
     </Card>
@@ -55,6 +67,8 @@ function StatCard({
 export default function DashboardPage() {
   const navigate = useNavigate();
   const today = dayjs().format('YYYY-MM-DD');
+  const currentYear = dayjs().year();
+  const currentMonth = dayjs().month() + 1;
 
   const inventoryQuery = useDrugInventory();
   const drugsQuery = useDrugs();
@@ -62,11 +76,15 @@ export default function DashboardPage() {
   const ordersQuery = usePurchaseOrders();
   const expiryQuery = useExpiryRecords();
   const salesQuery = useDailySalesReport(today);
+  const monthlyQuery = useMonthlySalesReport(currentYear, currentMonth);
+  const stockValuationQuery = useStockValuationReport();
+  const patientsQuery = usePatients();
+  const debtQuery = useDebtRecords();
 
   const drugMap = useMemo(() => {
-    const map = new Map<string, string>();
+    const map = new Map<string, { name: string; reorderLevel: number }>();
     for (const d of drugsQuery.data ?? []) {
-      if (d.id) map.set(d.id, d.name ?? d.id);
+      if (d.id) map.set(d.id, { name: d.name ?? d.id, reorderLevel: d.reorderLevel ?? 10 });
     }
     return map;
   }, [drugsQuery.data]);
@@ -84,10 +102,14 @@ export default function DashboardPage() {
 
   const lowStock = useMemo(() => {
     return (inventoryQuery.data ?? [])
-      .filter((inv) => inv.quantityInStock <= 10 && inv.quantityInStock > 0)
+      .filter((inv) => {
+        const drug = drugMap.get(inv.drugId ?? '');
+        const threshold = drug?.reorderLevel ?? 10;
+        return inv.quantityInStock <= threshold && inv.quantityInStock > 0;
+      })
       .sort((a, b) => a.quantityInStock - b.quantityInStock)
       .slice(0, 10);
-  }, [inventoryQuery.data]);
+  }, [inventoryQuery.data, drugMap]);
 
   const pendingOrders = (ordersQuery.data ?? []).filter(
     (o) => o.status === 'Pending' || o.status === 'Draft',
@@ -97,12 +119,24 @@ export default function DashboardPage() {
     (r) => r.status === 'Detected' || r.status === 'Pending',
   ).length;
 
+  const totalOutstandingDebt = (debtQuery.data ?? [])
+    .filter((d) => d.remainingAmount > 0)
+    .reduce((s, d) => s + d.remainingAmount, 0);
+
+  const overdueDebts = (debtQuery.data ?? []).filter(
+    (d) => d.dueDate && dayjs(d.dueDate).isBefore(dayjs(), 'day') && d.remainingAmount > 0,
+  ).length;
+
+  const totalMrpValue = (stockValuationQuery.data ?? []).reduce(
+    (s, i) => s + i.totalMrpValue, 0,
+  );
+
   const expiryColumns: ColumnsType<DrugInventory> = [
     {
       title: 'Drug',
       dataIndex: 'drugId',
       key: 'drug',
-      render: (id: string) => drugMap.get(id) ?? id,
+      render: (id: string) => drugMap.get(id)?.name ?? id,
     },
     {
       title: 'Batch',
@@ -138,7 +172,7 @@ export default function DashboardPage() {
       title: 'Drug',
       dataIndex: 'drugId',
       key: 'drug',
-      render: (id: string) => drugMap.get(id) ?? id,
+      render: (id: string) => drugMap.get(id)?.name ?? id,
     },
     {
       title: 'Batch',
@@ -147,11 +181,18 @@ export default function DashboardPage() {
       render: (v: string | null) => v ?? '—',
     },
     {
-      title: 'Qty in Stock',
+      title: 'Qty',
       dataIndex: 'quantityInStock',
       key: 'qty',
       align: 'right',
       render: (v: number) => <Tag color={v === 0 ? 'red' : 'orange'}>{v}</Tag>,
+    },
+    {
+      title: 'Reorder At',
+      dataIndex: 'drugId',
+      key: 'reorder',
+      align: 'right',
+      render: (id: string) => drugMap.get(id)?.reorderLevel ?? 10,
     },
   ];
 
@@ -168,50 +209,71 @@ export default function DashboardPage() {
         <Spin tip="Loading overview…" style={{ display: 'block', marginTop: 48 }} />
       ) : (
         <>
-          {/* Today's sales summary */}
-          {salesQuery.data && (
-            <Card
-              size="small"
-              title={
-                <span>
-                  <BarChartOutlined style={{ marginRight: 6, color: '#1677ff' }} />
-                  Today's Sales — {dayjs().format('DD MMM YYYY')}
-                </span>
-              }
-              style={{ marginBottom: 16 }}
-            >
-              <Row gutter={16}>
-                <Col xs={12} sm={6}>
-                  <Statistic title="Invoices" value={salesQuery.data.invoiceCount} />
-                </Col>
-                <Col xs={12} sm={6}>
-                  <Statistic
-                    title="Gross Sales"
-                    value={salesQuery.data.subTotal}
-                    precision={2}
-                    prefix="₹"
-                  />
-                </Col>
-                <Col xs={12} sm={6}>
-                  <Statistic
-                    title="Total GST"
-                    value={salesQuery.data.gstAmount}
-                    precision={2}
-                    prefix="₹"
-                  />
-                </Col>
-                <Col xs={12} sm={6}>
-                  <Statistic
-                    title="Net Amount"
-                    value={salesQuery.data.netAmount}
-                    precision={2}
-                    prefix="₹"
-                    valueStyle={{ color: '#3f8600', fontWeight: 700 }}
-                  />
-                </Col>
-              </Row>
-            </Card>
-          )}
+          {/* Today's sales + month revenue */}
+          <Row gutter={16} style={{ marginBottom: 16 }}>
+            {salesQuery.data && (
+              <Col xs={24} lg={12}>
+                <Card
+                  size="small"
+                  title={
+                    <span>
+                      <BarChartOutlined style={{ marginRight: 6, color: '#1677ff' }} />
+                      Today's Sales — {dayjs().format('DD MMM YYYY')}
+                    </span>
+                  }
+                >
+                  <Row gutter={16}>
+                    <Col span={8}>
+                      <Statistic title="Invoices" value={salesQuery.data.invoiceCount} />
+                    </Col>
+                    <Col span={8}>
+                      <Statistic title="Gross" value={salesQuery.data.subTotal} precision={2} prefix="₹" />
+                    </Col>
+                    <Col span={8}>
+                      <Statistic
+                        title="Net"
+                        value={salesQuery.data.netAmount}
+                        precision={2}
+                        prefix="₹"
+                        valueStyle={{ color: '#3f8600', fontWeight: 700 }}
+                      />
+                    </Col>
+                  </Row>
+                </Card>
+              </Col>
+            )}
+            {monthlyQuery.data && (
+              <Col xs={24} lg={12}>
+                <Card
+                  size="small"
+                  title={
+                    <span>
+                      <RiseOutlined style={{ marginRight: 6, color: '#722ed1' }} />
+                      {dayjs().format('MMMM YYYY')} Revenue
+                    </span>
+                  }
+                >
+                  <Row gutter={16}>
+                    <Col span={8}>
+                      <Statistic title="Invoices" value={monthlyQuery.data.invoiceCount} />
+                    </Col>
+                    <Col span={8}>
+                      <Statistic title="Gross" value={monthlyQuery.data.subTotal} precision={2} prefix="₹" />
+                    </Col>
+                    <Col span={8}>
+                      <Statistic
+                        title="Net"
+                        value={monthlyQuery.data.netAmount}
+                        precision={2}
+                        prefix="₹"
+                        valueStyle={{ color: '#722ed1', fontWeight: 700 }}
+                      />
+                    </Col>
+                  </Row>
+                </Card>
+              </Col>
+            )}
+          </Row>
 
           {/* KPI cards */}
           <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
@@ -248,6 +310,47 @@ export default function DashboardPage() {
                 onClick={() => navigate('/purchase-orders')}
               />
             </Col>
+            <Col xs={12} sm={8} md={6}>
+              <StatCard
+                title="Patients"
+                value={(patientsQuery.data ?? []).length}
+                icon={<ContactsOutlined />}
+                onClick={() => navigate('/patients')}
+              />
+            </Col>
+            <Col xs={12} sm={8} md={6}>
+              <StatCard
+                title="Outstanding Debt"
+                value={totalOutstandingDebt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                icon={<CreditCardOutlined />}
+                color={totalOutstandingDebt > 0 ? '#cf1322' : '#3f8600'}
+                prefix="₹"
+                onClick={() => navigate('/debt')}
+              />
+            </Col>
+            {overdueDebts > 0 && (
+              <Col xs={12} sm={8} md={6}>
+                <StatCard
+                  title="Overdue Debts"
+                  value={overdueDebts}
+                  icon={<CreditCardOutlined />}
+                  color="#cf1322"
+                  onClick={() => navigate('/debt')}
+                />
+              </Col>
+            )}
+            {stockValuationQuery.data && (
+              <Col xs={12} sm={8} md={6}>
+                <StatCard
+                  title="Stock Value (MRP)"
+                  value={totalMrpValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  icon={<BarChartOutlined />}
+                  color="#1677ff"
+                  prefix="₹"
+                  onClick={() => navigate('/reports')}
+                />
+              </Col>
+            )}
           </Row>
 
           {/* Alert banners */}
@@ -276,6 +379,21 @@ export default function DashboardPage() {
             />
           )}
 
+          {overdueDebts > 0 && (
+            <Alert
+              type="warning"
+              showIcon
+              icon={<CreditCardOutlined />}
+              message={`${overdueDebts} debt record${overdueDebts > 1 ? 's are' : ' is'} overdue`}
+              action={
+                <a onClick={() => navigate('/debt')} style={{ whiteSpace: 'nowrap' }}>
+                  View →
+                </a>
+              }
+              style={{ marginBottom: 16 }}
+            />
+          )}
+
           {/* Detail tables */}
           <Row gutter={16}>
             <Col xs={24} lg={12}>
@@ -287,9 +405,7 @@ export default function DashboardPage() {
                     Expiring Soon (next {WARN_DAYS} days)
                   </span>
                 }
-                extra={
-                  <a onClick={() => navigate('/inventory/drugs')}>See all</a>
-                }
+                extra={<a onClick={() => navigate('/inventory/drugs')}>See all</a>}
               >
                 {expiringSoon.length === 0 ? (
                   <div style={{ color: '#3f8600', padding: '8px 0' }}>No items expiring soon</div>
@@ -305,18 +421,16 @@ export default function DashboardPage() {
                 )}
               </Card>
             </Col>
-            <Col xs={24} lg={12} style={{ marginTop: 0 }}>
+            <Col xs={24} lg={12}>
               <Card
                 size="small"
                 title={
                   <span>
                     <WarningOutlined style={{ color: '#ff4d4f', marginRight: 6 }} />
-                    Low Stock (≤ 10 units)
+                    Low Stock (at or below reorder level)
                   </span>
                 }
-                extra={
-                  <a onClick={() => navigate('/inventory/drugs')}>See all</a>
-                }
+                extra={<a onClick={() => navigate('/inventory/drugs')}>See all</a>}
               >
                 {lowStock.length === 0 ? (
                   <div style={{ color: '#3f8600', padding: '8px 0' }}>No low stock items</div>

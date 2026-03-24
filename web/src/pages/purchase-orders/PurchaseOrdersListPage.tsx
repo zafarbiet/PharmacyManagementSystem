@@ -2,15 +2,16 @@ import { useState, useMemo } from 'react';
 import { Table, Input, Select, Button, Tag, Space, Typography, Row, Col, Card, Popconfirm, Tooltip, message } from 'antd';
 import {
   SearchOutlined, PlusOutlined, ReloadOutlined,
-  CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined,
+  CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, InboxOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import type { PurchaseOrder } from '@/api/types.gen';
+import type { PurchaseOrder } from '@/api/localTypes';
 import { usePurchaseOrders } from '@/hooks/usePurchaseOrders';
 import { useVendors } from '@/hooks/useVendors';
 import { useDeletePurchaseOrder, useApprovePurchaseOrder, useRejectPurchaseOrder } from '@/hooks/usePurchaseOrderMutations';
 import PurchaseOrderFormModal from '@/components/PurchaseOrderFormModal';
+import ReceiveConsignmentModal from '@/components/ReceiveConsignmentModal';
 import { useGlobalStore } from '@/store/globalStore';
 
 const { Title } = Typography;
@@ -30,12 +31,14 @@ const STATUS_OPTIONS = Object.keys(STATUS_COLORS).map((s) => ({ value: s, label:
 
 const APPROVABLE = ['Draft', 'Pending'];
 const REJECTABLE = ['Draft', 'Pending', 'Approved'];
+const RECEIVABLE = ['Approved', 'PartiallyReceived'];
 
 export default function PurchaseOrdersListPage() {
   const [search, setSearch] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const [modalOpen, setModalOpen] = useState(false);
+  const [receivingPO, setReceivingPO] = useState<PurchaseOrder | null>(null);
 
   const currentUser = useGlobalStore((s) => s.currentUser);
   const username = currentUser?.username ?? 'system';
@@ -171,6 +174,16 @@ export default function PurchaseOrdersListPage() {
               </Popconfirm>
             </Tooltip>
           )}
+          {RECEIVABLE.includes(record.status ?? '') && (
+            <Tooltip title="Receive Consignment">
+              <Button
+                type="text"
+                size="small"
+                icon={<InboxOutlined style={{ color: '#1677ff' }} />}
+                onClick={() => setReceivingPO(record as unknown as PurchaseOrder)}
+              />
+            </Tooltip>
+          )}
           <Popconfirm
             title="Delete this PO?"
             onConfirm={() => handleDelete(record.id!)}
@@ -268,6 +281,7 @@ export default function PurchaseOrdersListPage() {
       />
 
       <PurchaseOrderFormModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <ReceiveConsignmentModal purchaseOrder={receivingPO} onClose={() => setReceivingPO(null)} />
     </div>
   );
 }

@@ -21,13 +21,13 @@ public static class PurchaseOrderItemDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.PurchaseOrderId != Guid.Empty)
+        if (filter.PurchaseOrderId.HasValue && filter.PurchaseOrderId.Value != Guid.Empty)
         {
             sql += " AND PurchaseOrderId = @PurchaseOrderId";
             parameters.Add("PurchaseOrderId", filter.PurchaseOrderId);
         }
 
-        if (filter.DrugId != Guid.Empty)
+        if (filter.DrugId.HasValue && filter.DrugId.Value != Guid.Empty)
         {
             sql += " AND DrugId = @DrugId";
             parameters.Add("DrugId", filter.DrugId);

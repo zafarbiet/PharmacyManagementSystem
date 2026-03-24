@@ -14,6 +14,11 @@ import {
   SolutionOutlined,
   SendOutlined,
   ContactsOutlined,
+  CreditCardOutlined,
+  AlertOutlined,
+  BellOutlined,
+  ExperimentOutlined,
+  InboxOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -46,6 +51,11 @@ const menuItems = [
     label: 'Patients',
   },
   {
+    key: '/debt',
+    icon: <CreditCardOutlined />,
+    label: 'Debt Management',
+  },
+  {
     key: '/invoices',
     icon: <FileTextOutlined />,
     label: 'Invoices',
@@ -54,6 +64,21 @@ const menuItems = [
     key: '/expired-drugs',
     icon: <WarningOutlined />,
     label: 'Expiry Management',
+  },
+  {
+    key: '/inventory/damage',
+    icon: <AlertOutlined />,
+    label: 'Damage Records',
+  },
+  {
+    key: '/subscriptions',
+    icon: <ExperimentOutlined />,
+    label: 'Subscriptions',
+  },
+  {
+    key: '/notifications',
+    icon: <BellOutlined />,
+    label: 'Notifications',
   },
   {
     key: '/vendors',
@@ -86,6 +111,8 @@ const menuItems = [
     children: [
       { key: '/settings/branches', icon: <BankOutlined />, label: 'Branches' },
       { key: '/settings/drug-categories', icon: <TagsOutlined />, label: 'Drug Categories' },
+      { key: '/settings/roles', icon: <UserOutlined />, label: 'Roles' },
+      { key: '/settings/storage', icon: <InboxOutlined />, label: 'Storage & Racks' },
     ],
   },
 ];

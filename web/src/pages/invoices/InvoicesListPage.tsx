@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
 import { Table, Input, Select, Button, Tag, Space, Typography, Row, Col, Card, Tooltip, Popconfirm, message } from 'antd';
-import { SearchOutlined, PlusOutlined, ReloadOutlined, InfoCircleOutlined, DeleteOutlined } from '@ant-design/icons';
+import { SearchOutlined, PlusOutlined, ReloadOutlined, InfoCircleOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import type { CustomerInvoice } from '@/api/localTypes';
 import { useCustomerInvoices } from '@/hooks/useCustomerInvoices';
 import { useDeleteCustomerInvoice } from '@/hooks/useCustomerInvoiceMutations';
 import InvoiceFormModal from '@/components/InvoiceFormModal';
+import InvoiceDetailDrawer from '@/components/InvoiceDetailDrawer';
 
 const { Title } = Typography;
 
@@ -38,6 +39,7 @@ export default function InvoicesListPage() {
   const [appliedSearch, setAppliedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const [modalOpen, setModalOpen] = useState(false);
+  const [viewInvoice, setViewInvoice] = useState<CustomerInvoice | null>(null);
 
   const invoicesQuery = useCustomerInvoices();
   const deleteInvoice = useDeleteCustomerInvoice();
@@ -175,16 +177,24 @@ export default function InvoicesListPage() {
     {
       title: 'Actions',
       key: 'actions',
-      width: 60,
+      width: 90,
       render: (_: unknown, record: CustomerInvoice) => (
-        <Popconfirm
-          title="Delete this invoice?"
-          onConfirm={() => handleDelete(record.id)}
-          okText="Delete"
-          okType="danger"
-        >
-          <Button type="text" size="small" danger icon={<DeleteOutlined />} />
-        </Popconfirm>
+        <Space size={4}>
+          <Button
+            type="text"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => setViewInvoice(record)}
+          />
+          <Popconfirm
+            title="Delete this invoice?"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Delete"
+            okType="danger"
+          >
+            <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+          </Popconfirm>
+        </Space>
       ),
     },
   ];
@@ -286,6 +296,7 @@ export default function InvoicesListPage() {
       />
 
       <InvoiceFormModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <InvoiceDetailDrawer invoice={viewInvoice} onClose={() => setViewInvoice(null)} />
     </div>
   );
 }

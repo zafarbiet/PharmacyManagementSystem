@@ -302,3 +302,61 @@ export interface CustomerInvoiceItem {
   igstAmount: number;
   isActive: boolean;
 }
+
+export interface Role {
+  id: string;
+  name: string | null;
+  description: string | null;
+  isActive: boolean;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface UserRole {
+  id: string;
+  userId: string;
+  roleId: string;
+  assignedAt: string;
+  isActive: boolean;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface DebtRecord {
+  id: string;
+  patientId: string;
+  invoiceId: string;
+  originalAmount: number;
+  remainingAmount: number;
+  dueDate: string | null;
+  status: string | null;
+  notes: string | null;
+  isActive: boolean;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface DebtPayment {
+  id: string;
+  debtRecordId: string;
+  paymentDate: string;
+  amountPaid: number;
+  paymentMethod: string | null;
+  receivedBy: string | null;
+  notes: string | null;
+  isActive: boolean;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface DebtReminder {
+  id: string;
+  debtRecordId: string;
+  sentAt: string;
+  channel: string | null;
+  sentBy: string | null;
+  message: string | null;
+  isActive: boolean;
+  updatedAt: string;
+  updatedBy: string | null;
+}

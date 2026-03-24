@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axiosClient from '@/api/axiosClient';
-import type { PurchaseOrder } from '@/api/types.gen';
+import type { PurchaseOrder } from '@/api/localTypes';
 
 export interface PurchaseOrderQueryParams {
   vendorId?: string;

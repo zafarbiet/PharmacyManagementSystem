@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using PharmacyManagementSystem.Common.Exceptions;
+using PharmacyManagementSystem.Server.DrugInventory;
 using PharmacyManagementSystem.Server.Notification;
 using PharmacyManagementSystem.Server.PurchaseOrderItem;
 
@@ -9,11 +10,13 @@ public class SavePurchaseOrderAction(
     ILogger<SavePurchaseOrderAction> logger,
     IPurchaseOrderRepository repository,
     IPurchaseOrderItemRepository purchaseOrderItemRepository,
+    ISaveDrugInventoryAction drugInventoryAction,
     ISaveNotificationAction notificationAction) : ISavePurchaseOrderAction
 {
     private readonly ILogger<SavePurchaseOrderAction> _logger = logger;
     private readonly IPurchaseOrderRepository _repository = repository;
     private readonly IPurchaseOrderItemRepository _purchaseOrderItemRepository = purchaseOrderItemRepository;
+    private readonly ISaveDrugInventoryAction _drugInventoryAction = drugInventoryAction;
     private readonly ISaveNotificationAction _notificationAction = notificationAction;
 
     public async Task<Common.PurchaseOrder.PurchaseOrder?> AddAsync(Common.PurchaseOrder.PurchaseOrder? purchaseOrder, CancellationToken cancellationToken)
@@ -168,8 +171,25 @@ public class SavePurchaseOrderAction(
             var receivedQty = received?.QuantityReceived ?? 0;
 
             original.QuantityReceived = receivedQty;
+            original.BatchNumber = received?.BatchNumber ?? original.BatchNumber;
+            original.ExpirationDate = received?.ExpirationDate ?? original.ExpirationDate;
             original.UpdatedBy = "system";
             await _purchaseOrderItemRepository.UpdateAsync(original, cancellationToken).ConfigureAwait(false);
+
+            if (receivedQty > 0 && original.ExpirationDate.HasValue && !string.IsNullOrWhiteSpace(original.BatchNumber))
+            {
+                await _drugInventoryAction.AddAsync(new Common.DrugInventory.DrugInventory
+                {
+                    DrugId = original.DrugId,
+                    BatchNumber = original.BatchNumber,
+                    ExpirationDate = original.ExpirationDate.Value,
+                    QuantityInStock = receivedQty,
+                    UpdatedBy = "system"
+                }, cancellationToken).ConfigureAwait(false);
+
+                _logger.LogDebug("Created inventory entry for DrugId {DrugId} batch {Batch} qty {Qty}.",
+                    original.DrugId, original.BatchNumber, receivedQty);
+            }
 
             var remaining = original.QuantityOrdered - receivedQty;
             if (remaining > 0)

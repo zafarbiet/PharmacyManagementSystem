@@ -39,7 +39,7 @@ public static class NotificationDatabaseCommandText
             parameters.Add("Status", filter.Status);
         }
 
-        if (filter.RecipientId != Guid.Empty)
+        if (filter.RecipientId.HasValue && filter.RecipientId.Value != Guid.Empty)
         {
             sql += " AND RecipientId = @RecipientId";
             parameters.Add("RecipientId", filter.RecipientId);

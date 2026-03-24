@@ -24,7 +24,7 @@ public static class PurchaseOrderDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.VendorId != Guid.Empty)
+        if (filter.VendorId.HasValue && filter.VendorId.Value != Guid.Empty)
         {
             sql += " AND VendorId = @VendorId";
             parameters.Add("VendorId", filter.VendorId);

@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Logging;
+using PharmacyManagementSystem.Common.DrugInventory;
 using PharmacyManagementSystem.Common.Exceptions;
 using PharmacyManagementSystem.Server.AuditLog;
 using PharmacyManagementSystem.Server.Drug;
+using PharmacyManagementSystem.Server.DrugInventory;
 using PharmacyManagementSystem.Server.GstCalculation;
 
 namespace PharmacyManagementSystem.Server.CustomerInvoice;
@@ -10,6 +12,7 @@ public class SaveCustomerInvoiceAction(
     ILogger<SaveCustomerInvoiceAction> logger,
     ICustomerInvoiceRepository repository,
     IDrugRepository drugRepository,
+    IDrugInventoryRepository drugInventoryRepository,
     IGstCalculationService gstCalculationService,
     ISaveAuditLogAction auditLogAction) : ISaveCustomerInvoiceAction
 {
@@ -19,6 +22,7 @@ public class SaveCustomerInvoiceAction(
     private readonly ILogger<SaveCustomerInvoiceAction> _logger = logger;
     private readonly ICustomerInvoiceRepository _repository = repository;
     private readonly IDrugRepository _drugRepository = drugRepository;
+    private readonly IDrugInventoryRepository _drugInventoryRepository = drugInventoryRepository;
     private readonly IGstCalculationService _gstCalculationService = gstCalculationService;
     private readonly ISaveAuditLogAction _auditLogAction = auditLogAction;
 
@@ -32,9 +36,11 @@ public class SaveCustomerInvoiceAction(
             throw new BadRequestException("CustomerInvoice Status is required.");
 
         List<Common.AuditLog.AuditLog> pendingAuditLogs = [];
+        List<(Common.DrugInventory.DrugInventory Batch, int DeductQty)> stockDeductions = [];
+
         if (customerInvoice.Items.Count > 0)
         {
-            pendingAuditLogs = await ValidateAndComputeItemsAsync(customerInvoice, cancellationToken).ConfigureAwait(false);
+            (pendingAuditLogs, stockDeductions) = await ValidateAndComputeItemsAsync(customerInvoice, cancellationToken).ConfigureAwait(false);
         }
 
         customerInvoice.InvoiceNumber = await _repository
@@ -54,6 +60,15 @@ public class SaveCustomerInvoiceAction(
             {
                 auditLog.CustomerInvoiceId = result.Id;
                 await _auditLogAction.AddAsync(auditLog, cancellationToken).ConfigureAwait(false);
+            }
+
+            foreach (var (batch, qty) in stockDeductions)
+            {
+                batch.QuantityInStock -= qty;
+                batch.UpdatedBy = "system";
+                await _drugInventoryRepository.UpdateAsync(batch, cancellationToken).ConfigureAwait(false);
+                _logger.LogDebug("Deducted {Qty} from batch {Batch} (DrugId {DrugId}). Remaining: {Remaining}.",
+                    qty, batch.BatchNumber, batch.DrugId, batch.QuantityInStock);
             }
         }
 
@@ -97,7 +112,7 @@ public class SaveCustomerInvoiceAction(
         _logger.LogDebug("Removed customer invoice with id: {Id}.", id);
     }
 
-    private async Task<List<Common.AuditLog.AuditLog>> ValidateAndComputeItemsAsync(
+    private async Task<(List<Common.AuditLog.AuditLog> AuditLogs, List<(Common.DrugInventory.DrugInventory Batch, int Qty)> StockDeductions)> ValidateAndComputeItemsAsync(
         Common.CustomerInvoice.CustomerInvoice invoice,
         CancellationToken cancellationToken)
     {
@@ -107,6 +122,7 @@ public class SaveCustomerInvoiceAction(
         var subTotal = 0m;
         var totalDiscount = 0m;
         var auditLogs = new List<Common.AuditLog.AuditLog>();
+        var stockDeductions = new List<(Common.DrugInventory.DrugInventory Batch, int Qty)>();
 
         foreach (var item in invoice.Items)
         {
@@ -169,6 +185,31 @@ public class SaveCustomerInvoiceAction(
             totalIgst += gst.IgstAmount;
             subTotal += item.UnitPrice * item.Quantity;
             totalDiscount += (item.UnitPrice * item.Quantity) * (item.DiscountPercent / 100m);
+
+            // Stock deduction plan (FIFO by expiry date)
+            var batches = await _drugInventoryRepository
+                .GetByFilterCriteriaAsync(new DrugInventoryFilter { DrugId = item.DrugId }, cancellationToken)
+                .ConfigureAwait(false);
+
+            var availableBatches = (batches ?? [])
+                .Where(b => b.QuantityInStock > 0
+                    && (string.IsNullOrWhiteSpace(item.BatchNumber) || b.BatchNumber == item.BatchNumber))
+                .OrderBy(b => b.ExpirationDate)
+                .ToList();
+
+            var totalAvailable = availableBatches.Sum(b => b.QuantityInStock);
+            if (totalAvailable < item.Quantity)
+                throw new BadRequestException(
+                    $"Insufficient stock for '{drug.Name}'. Required: {item.Quantity}, available: {totalAvailable}.");
+
+            var remaining = item.Quantity;
+            foreach (var batch in availableBatches)
+            {
+                if (remaining <= 0) break;
+                var deduct = Math.Min(remaining, batch.QuantityInStock);
+                stockDeductions.Add((batch, deduct));
+                remaining -= deduct;
+            }
         }
 
         invoice.TotalCgst = totalCgst;
@@ -179,6 +220,6 @@ public class SaveCustomerInvoiceAction(
         invoice.DiscountAmount = totalDiscount;
         invoice.NetAmount = subTotal - totalDiscount + invoice.GstAmount;
 
-        return auditLogs;
+        return (auditLogs, stockDeductions);
     }
 }
