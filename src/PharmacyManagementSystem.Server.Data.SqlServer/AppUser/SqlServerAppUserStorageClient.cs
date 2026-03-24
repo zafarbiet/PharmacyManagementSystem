@@ -42,6 +42,22 @@ public class SqlServerAppUserStorageClient(ILogger<SqlServerAppUserStorageClient
         return appUser;
     }
 
+    public async Task<Common.AppUser.AppUser?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(username);
+
+        _logger.LogDebug("StorageClient: Getting app user by username: {Username}.", username);
+
+        var sql = await AppUserDatabaseCommandText.GetSelectByUsernameSql(username).ConfigureAwait(false);
+        var result = await _dbClient.QueryAsync<Common.AppUser.AppUser>(sql, cancellationToken).ConfigureAwait(false);
+
+        var appUser = result.FirstOrDefault();
+
+        _logger.LogDebug("StorageClient: Retrieved app user by username: {Username}.", username);
+
+        return appUser;
+    }
+
     public async Task<Common.AppUser.AppUser?> AddAsync(Common.AppUser.AppUser? appUser, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(appUser);

@@ -88,6 +88,7 @@ using PharmacyManagementSystem.Server.PaymentLedger;
 using PharmacyManagementSystem.Server.AuditLog;
 using PharmacyManagementSystem.Server.GstCalculation;
 using PharmacyManagementSystem.Server.Report;
+using PharmacyManagementSystem.Server.Auth;
 
 namespace PharmacyManagementSystem.Server.Host;
 
@@ -196,6 +197,7 @@ public static class DependencyExtensions
         services.AddScoped<IAppUserRepository, AppUserRepository>();
         services.AddScoped<IGetAppUserAction, GetAppUserAction>();
         services.AddScoped<ISaveAppUserAction, SaveAppUserAction>();
+        services.AddScoped<ILoginAction, LoginAction>();
 
         // Role - Storage Client + Repository: Scoped; Actions: Singleton
         services.AddScoped<IRoleStorageClient, SqlServerRoleStorageClient>();

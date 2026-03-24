@@ -66,6 +66,12 @@ using PharmacyManagementSystem.Server.PaymentLedger;
 using PharmacyManagementSystem.Server.PurchaseOrder;
 using PharmacyManagementSystem.Server.PurchaseOrderItem;
 using PharmacyManagementSystem.Server.Report;
+using PharmacyManagementSystem.Server.Auth;
+using PharmacyManagementSystem.Common.Auth;
+using PharmacyManagementSystem.Common.CustomerInvoice;
+using PharmacyManagementSystem.Common.CustomerInvoiceItem;
+using PharmacyManagementSystem.Server.CustomerInvoice;
+using PharmacyManagementSystem.Server.CustomerInvoiceItem;
 
 namespace PharmacyManagementSystem.Server.Host;
 
@@ -107,6 +113,9 @@ public static class ControllerExtensions
         app.AddPurchaseOrderItemApis();
         app.AddAuditLogApis();
         app.AddReportApis();
+        app.AddCustomerInvoiceApis();
+        app.AddCustomerInvoiceItemApis();
+        app.AddAuthApis();
         return app;
     }
 
@@ -2420,5 +2429,161 @@ public static class ControllerExtensions
             var result = await reportService.GetDailySalesReportAsync(date, cancellationToken).ConfigureAwait(false);
             return Results.Ok(result);
         }).WithName("GetDailySalesReport");
+    }
+
+    private static void AddCustomerInvoiceApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/customer-invoices").WithTags("CustomerInvoices");
+
+        group.MapGet("/", async (
+            [FromServices] IGetCustomerInvoiceAction action,
+            [AsParameters] CustomerInvoiceFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetCustomerInvoices");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetCustomerInvoiceAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetCustomerInvoiceById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.CustomerInvoice.CustomerInvoice customerInvoice,
+            [FromServices] ISaveCustomerInvoiceAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(customerInvoice, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/customer-invoices/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreateCustomerInvoice");
+
+        group.MapPut("/{id}", async (
+            Guid id,
+            [FromBody] Common.CustomerInvoice.CustomerInvoice customerInvoice,
+            [FromServices] ISaveCustomerInvoiceAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                customerInvoice.Id = id;
+                var result = await action.UpdateAsync(customerInvoice, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("UpdateCustomerInvoice");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISaveCustomerInvoiceAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeleteCustomerInvoice");
+    }
+
+    private static void AddCustomerInvoiceItemApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/customer-invoice-items").WithTags("CustomerInvoiceItems");
+
+        group.MapGet("/", async (
+            [FromServices] IGetCustomerInvoiceItemAction action,
+            [AsParameters] CustomerInvoiceItemFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetCustomerInvoiceItems");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetCustomerInvoiceItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetCustomerInvoiceItemById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.CustomerInvoiceItem.CustomerInvoiceItem item,
+            [FromServices] ISaveCustomerInvoiceItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(item, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/customer-invoice-items/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreateCustomerInvoiceItem");
+
+        group.MapPut("/{id}", async (
+            Guid id,
+            [FromBody] Common.CustomerInvoiceItem.CustomerInvoiceItem item,
+            [FromServices] ISaveCustomerInvoiceItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                item.Id = id;
+                var result = await action.UpdateAsync(item, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("UpdateCustomerInvoiceItem");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISaveCustomerInvoiceItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeleteCustomerInvoiceItem");
+    }
+
+    private static void AddAuthApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/auth").WithTags("Auth");
+
+        group.MapPost("/login", async (
+            [FromBody] LoginRequest request,
+            [FromServices] ILoginAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.LoginAsync(request, cancellationToken).ConfigureAwait(false);
+                if (result is null)
+                    return Results.Unauthorized();
+
+                return Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("Login").AllowAnonymous();
     }
 }

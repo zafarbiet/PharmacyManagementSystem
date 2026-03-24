@@ -1,7 +1,17 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import AppLayout from '@/layout/AppLayout';
 import LoginPage from '@/pages/LoginPage';
+import DashboardPage from '@/pages/dashboard/DashboardPage';
 import DrugInventoryListPage from '@/pages/inventory/DrugInventoryListPage';
+import DrugsListPage from '@/pages/drugs/DrugsListPage';
+import VendorsListPage from '@/pages/vendors/VendorsListPage';
+import PurchaseOrdersListPage from '@/pages/purchase-orders/PurchaseOrdersListPage';
+import ExpiryManagementPage from '@/pages/expiry/ExpiryManagementPage';
+import ReportsPage from '@/pages/reports/ReportsPage';
+import InvoicesListPage from '@/pages/invoices/InvoicesListPage';
+import UsersListPage from '@/pages/users/UsersListPage';
+import BranchesListPage from '@/pages/settings/BranchesListPage';
+import DrugCategoriesListPage from '@/pages/settings/DrugCategoriesListPage';
 import { useGlobalStore } from '@/store/globalStore';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -25,13 +35,48 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/inventory/drugs" replace />,
+        element: <DashboardPage />,
       },
       {
         path: 'inventory/drugs',
         element: <DrugInventoryListPage />,
       },
-      // Phase 2+ routes added here
+      {
+        path: 'drugs',
+        element: <DrugsListPage />,
+      },
+      {
+        path: 'vendors',
+        element: <VendorsListPage />,
+      },
+      {
+        path: 'purchase-orders',
+        element: <PurchaseOrdersListPage />,
+      },
+      {
+        path: 'expired-drugs',
+        element: <ExpiryManagementPage />,
+      },
+      {
+        path: 'invoices',
+        element: <InvoicesListPage />,
+      },
+      {
+        path: 'reports',
+        element: <ReportsPage />,
+      },
+      {
+        path: 'users',
+        element: <UsersListPage />,
+      },
+      {
+        path: 'settings/branches',
+        element: <BranchesListPage />,
+      },
+      {
+        path: 'settings/drug-categories',
+        element: <DrugCategoriesListPage />,
+      },
     ],
   },
   {

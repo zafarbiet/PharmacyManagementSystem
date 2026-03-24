@@ -1,38 +1,40 @@
-import { Form, Input, Button, Card, Typography } from 'antd';
+import { useState } from 'react';
+import { Form, Input, Button, Card, Typography, Alert } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import axiosClient from '@/api/axiosClient';
 import { useGlobalStore } from '@/store/globalStore';
+import type { LoginRequest, LoginResponse } from '@/api/localTypes';
 
 const { Title } = Typography;
 
-interface LoginFormValues {
-  username: string;
-  password: string;
-}
-
 export default function LoginPage() {
-  const [form] = Form.useForm<LoginFormValues>();
+  const [form] = Form.useForm<LoginRequest>();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { setCurrentUser, setAuthToken } = useGlobalStore();
 
-  const handleSubmit = (values: LoginFormValues) => {
-    // Phase 1 skeleton: accepts any non-empty credentials.
-    // Replace with POST /api/auth/login in Phase 2.
-    setAuthToken('pms-dev-token-placeholder');
-    setCurrentUser({
-      id: '00000000-0000-0000-0000-000000000001',
-      username: values.username,
-      fullName: values.username,
-      email: null,
-      phone: null,
-      passwordHash: null,
-      isLocked: false,
-      lastLoginAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      updatedBy: null,
-      isActive: true,
-    });
-    navigate('/');
+  const handleSubmit = async (values: LoginRequest) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await axiosClient.post<LoginResponse>('/auth/login', values);
+      setAuthToken(data.token);
+      if (data.user) setCurrentUser(data.user);
+      navigate('/');
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 401) {
+        setError('Invalid username or password.');
+      } else if (status === 422) {
+        setError('Please enter both username and password.');
+      } else {
+        setError('Login failed. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -49,6 +51,9 @@ export default function LoginPage() {
         <Title level={3} style={{ textAlign: 'center', marginBottom: 24 }}>
           Pharmacy MS
         </Title>
+        {error && (
+          <Alert type="error" message={error} showIcon style={{ marginBottom: 16 }} />
+        )}
         <Form form={form} onFinish={handleSubmit} layout="vertical" size="large">
           <Form.Item
             name="username"
@@ -67,7 +72,7 @@ export default function LoginPage() {
             />
           </Form.Item>
           <Form.Item style={{ marginBottom: 0 }}>
-            <Button type="primary" htmlType="submit" block>
+            <Button type="primary" htmlType="submit" block loading={loading}>
               Log In
             </Button>
           </Form.Item>
