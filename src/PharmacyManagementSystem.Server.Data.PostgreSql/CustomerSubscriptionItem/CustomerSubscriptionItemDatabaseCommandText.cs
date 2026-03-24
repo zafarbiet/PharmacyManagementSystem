@@ -21,13 +21,13 @@ public static class CustomerSubscriptionItemDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.SubscriptionId != Guid.Empty)
+        if (filter.SubscriptionId.HasValue && filter.SubscriptionId.Value != Guid.Empty)
         {
             sql += " AND SubscriptionId = @SubscriptionId";
             parameters.Add("SubscriptionId", filter.SubscriptionId);
         }
 
-        if (filter.DrugId != Guid.Empty)
+        if (filter.DrugId.HasValue && filter.DrugId.Value != Guid.Empty)
         {
             sql += " AND DrugId = @DrugId";
             parameters.Add("DrugId", filter.DrugId);

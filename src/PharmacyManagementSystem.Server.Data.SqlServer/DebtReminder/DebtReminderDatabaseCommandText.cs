@@ -21,7 +21,7 @@ public static class DebtReminderDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.DebtRecordId != Guid.Empty)
+        if (filter.DebtRecordId.HasValue && filter.DebtRecordId.Value != Guid.Empty)
         {
             sql += " AND DebtRecordId = @DebtRecordId";
             parameters.Add("DebtRecordId", filter.DebtRecordId);

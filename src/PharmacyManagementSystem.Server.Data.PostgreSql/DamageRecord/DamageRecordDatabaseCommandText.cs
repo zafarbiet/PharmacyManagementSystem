@@ -21,7 +21,7 @@ public static class DamageRecordDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.DrugInventoryId != Guid.Empty)
+        if (filter.DrugInventoryId.HasValue && filter.DrugInventoryId.Value != Guid.Empty)
         {
             sql += " AND DrugInventoryId = @DrugInventoryId";
             parameters.Add("DrugInventoryId", filter.DrugInventoryId);

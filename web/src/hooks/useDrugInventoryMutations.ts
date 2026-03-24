@@ -20,7 +20,7 @@ export function useCreateDrugInventory() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: createDrugInventory,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['drug-inventories'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['drug-inventory'] }),
   });
 }
 
@@ -28,7 +28,7 @@ export function useUpdateDrugInventory() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: updateDrugInventory,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['drug-inventories'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['drug-inventory'] }),
   });
 }
 
@@ -36,6 +36,6 @@ export function useDeleteDrugInventory() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: deleteDrugInventory,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['drug-inventories'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['drug-inventory'] }),
   });
 }

@@ -21,13 +21,13 @@ public static class CustomerInvoiceItemDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.InvoiceId != Guid.Empty)
+        if (filter.InvoiceId.HasValue && filter.InvoiceId.Value != Guid.Empty)
         {
             sql += " AND InvoiceId = @InvoiceId";
             parameters.Add("InvoiceId", filter.InvoiceId);
         }
 
-        if (filter.DrugId != Guid.Empty)
+        if (filter.DrugId.HasValue && filter.DrugId.Value != Guid.Empty)
         {
             sql += " AND DrugId = @DrugId";
             parameters.Add("DrugId", filter.DrugId);

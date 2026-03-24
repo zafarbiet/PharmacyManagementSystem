@@ -12,10 +12,16 @@ import InvoicesListPage from '@/pages/invoices/InvoicesListPage';
 import UsersListPage from '@/pages/users/UsersListPage';
 import BranchesListPage from '@/pages/settings/BranchesListPage';
 import DrugCategoriesListPage from '@/pages/settings/DrugCategoriesListPage';
+import RolesListPage from '@/pages/settings/RolesListPage';
+import StorageZonesPage from '@/pages/settings/StorageZonesPage';
 import QuotationRequestsListPage from '@/pages/quotations/QuotationRequestsListPage';
 import QuotationsListPage from '@/pages/quotations/QuotationsListPage';
 import PatientsListPage from '@/pages/patients/PatientsListPage';
 import PatientPrescriptionsPage from '@/pages/patients/PatientPrescriptionsPage';
+import DebtRecordsListPage from '@/pages/debt/DebtRecordsListPage';
+import SubscriptionsListPage from '@/pages/subscriptions/SubscriptionsListPage';
+import DamageRecordsPage from '@/pages/inventory/DamageRecordsPage';
+import NotificationsPage from '@/pages/notifications/NotificationsPage';
 import { useGlobalStore } from '@/store/globalStore';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -82,12 +88,36 @@ export const router = createBrowserRouter([
         element: <DrugCategoriesListPage />,
       },
       {
+        path: 'settings/roles',
+        element: <RolesListPage />,
+      },
+      {
+        path: 'settings/storage',
+        element: <StorageZonesPage />,
+      },
+      {
         path: 'patients',
         element: <PatientsListPage />,
       },
       {
         path: 'patients/:patientId/prescriptions',
         element: <PatientPrescriptionsPage />,
+      },
+      {
+        path: 'debt',
+        element: <DebtRecordsListPage />,
+      },
+      {
+        path: 'subscriptions',
+        element: <SubscriptionsListPage />,
+      },
+      {
+        path: 'inventory/damage',
+        element: <DamageRecordsPage />,
+      },
+      {
+        path: 'notifications',
+        element: <NotificationsPage />,
       },
       {
         path: 'quotations/rfq',

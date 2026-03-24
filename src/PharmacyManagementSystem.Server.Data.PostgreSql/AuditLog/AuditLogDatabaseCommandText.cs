@@ -21,19 +21,19 @@ public static class AuditLogDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.DrugId != Guid.Empty)
+        if (filter.DrugId.HasValue && filter.DrugId.Value != Guid.Empty)
         {
             sql += " AND DrugId = @DrugId";
             parameters.Add("DrugId", filter.DrugId);
         }
 
-        if (filter.CustomerInvoiceId != Guid.Empty)
+        if (filter.CustomerInvoiceId.HasValue && filter.CustomerInvoiceId.Value != Guid.Empty)
         {
             sql += " AND CustomerInvoiceId = @CustomerInvoiceId";
             parameters.Add("CustomerInvoiceId", filter.CustomerInvoiceId);
         }
 
-        if (filter.PatientId != Guid.Empty)
+        if (filter.PatientId.HasValue && filter.PatientId.Value != Guid.Empty)
         {
             sql += " AND PatientId = @PatientId";
             parameters.Add("PatientId", filter.PatientId);

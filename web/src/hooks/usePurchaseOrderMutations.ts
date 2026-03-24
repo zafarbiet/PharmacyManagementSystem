@@ -35,6 +35,17 @@ async function createPurchaseOrderItem(item: Partial<PurchaseOrderItem>): Promis
   return data;
 }
 
+async function receiveConsignment({
+  id,
+  items,
+}: {
+  id: string;
+  items: Partial<PurchaseOrderItem>[];
+}): Promise<PurchaseOrder> {
+  const { data } = await axiosClient.post<PurchaseOrder>(`/purchase-orders/${id}/receive`, items);
+  return data;
+}
+
 export function useCreatePurchaseOrder() {
   const qc = useQueryClient();
   return useMutation({
@@ -80,5 +91,16 @@ export function useCreatePurchaseOrderItem() {
   return useMutation({
     mutationFn: createPurchaseOrderItem,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['purchase-orders'] }),
+  });
+}
+
+export function useReceiveConsignment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: receiveConsignment,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['purchase-orders'] });
+      qc.invalidateQueries({ queryKey: ['drug-inventory'] });
+    },
   });
 }
