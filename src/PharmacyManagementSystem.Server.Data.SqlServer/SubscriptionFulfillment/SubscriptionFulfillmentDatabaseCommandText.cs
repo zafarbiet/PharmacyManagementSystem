@@ -21,7 +21,7 @@ public static class SubscriptionFulfillmentDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.SubscriptionId != Guid.Empty)
+        if (filter.SubscriptionId.HasValue && filter.SubscriptionId.Value != Guid.Empty)
         {
             sql += " AND SubscriptionId = @SubscriptionId";
             parameters.Add("SubscriptionId", filter.SubscriptionId);

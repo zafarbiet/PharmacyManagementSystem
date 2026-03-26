@@ -8,6 +8,7 @@ using PharmacyManagementSystem.Server.CustomerInvoice;
 using PharmacyManagementSystem.Server.Drug;
 using PharmacyManagementSystem.Server.DrugInventory;
 using PharmacyManagementSystem.Server.GstCalculation;
+using PharmacyManagementSystem.Server.Patient;
 using PharmacyManagementSystem.Server.Unit.CustomerInvoice.Data;
 
 namespace PharmacyManagementSystem.Server.Unit.CustomerInvoice;
@@ -21,6 +22,7 @@ public class TestSaveCustomerInvoiceAction
     private readonly IDrugInventoryRepository _drugInventoryRepository;
     private readonly IGstCalculationService _gstCalculationService;
     private readonly ISaveAuditLogAction _auditLogAction;
+    private readonly IPatientRepository _patientRepository;
     private readonly SaveCustomerInvoiceAction _action;
 
     public TestSaveCustomerInvoiceAction()
@@ -31,8 +33,9 @@ public class TestSaveCustomerInvoiceAction
         _drugInventoryRepository = Substitute.For<IDrugInventoryRepository>();
         _gstCalculationService = Substitute.For<IGstCalculationService>();
         _auditLogAction = Substitute.For<ISaveAuditLogAction>();
+        _patientRepository = Substitute.For<IPatientRepository>();
         _repository.GetNextInvoiceNumberAsync(Arg.Any<CancellationToken>()).Returns("INV/2025-26/00001");
-        _action = new SaveCustomerInvoiceAction(_logger, _repository, _drugRepository, _drugInventoryRepository, _gstCalculationService, _auditLogAction);
+        _action = new SaveCustomerInvoiceAction(_logger, _repository, _drugRepository, _drugInventoryRepository, _gstCalculationService, _auditLogAction, _patientRepository);
     }
 
     [TestMethod]

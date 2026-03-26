@@ -21,13 +21,13 @@ public static class PrescriptionItemDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.PrescriptionId != Guid.Empty)
+        if (filter.PrescriptionId.HasValue && filter.PrescriptionId.Value != Guid.Empty)
         {
             sql += " AND PrescriptionId = @PrescriptionId";
             parameters.Add("PrescriptionId", filter.PrescriptionId);
         }
 
-        if (filter.DrugId != Guid.Empty)
+        if (filter.DrugId.HasValue && filter.DrugId.Value != Guid.Empty)
         {
             sql += " AND DrugId = @DrugId";
             parameters.Add("DrugId", filter.DrugId);

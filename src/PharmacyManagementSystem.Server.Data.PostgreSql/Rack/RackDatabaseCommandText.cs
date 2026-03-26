@@ -21,7 +21,7 @@ public static class RackDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.StorageZoneId != Guid.Empty)
+        if (filter.StorageZoneId.HasValue && filter.StorageZoneId.Value != Guid.Empty)
         {
             sql += " AND StorageZoneId = @StorageZoneId";
             parameters.Add("StorageZoneId", filter.StorageZoneId);
