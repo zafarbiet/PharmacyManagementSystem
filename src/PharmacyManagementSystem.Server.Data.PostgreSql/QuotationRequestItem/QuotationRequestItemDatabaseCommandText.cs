@@ -21,13 +21,13 @@ public static class QuotationRequestItemDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.QuotationRequestId != Guid.Empty)
+        if (filter.QuotationRequestId.HasValue && filter.QuotationRequestId.Value != Guid.Empty)
         {
             sql += " AND QuotationRequestId = @QuotationRequestId";
             parameters.Add("QuotationRequestId", filter.QuotationRequestId);
         }
 
-        if (filter.DrugId != Guid.Empty)
+        if (filter.DrugId.HasValue && filter.DrugId.Value != Guid.Empty)
         {
             sql += " AND DrugId = @DrugId";
             parameters.Add("DrugId", filter.DrugId);

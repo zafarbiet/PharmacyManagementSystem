@@ -21,7 +21,7 @@ public static class DisposalRecordDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.ExpiryRecordId != Guid.Empty)
+        if (filter.ExpiryRecordId.HasValue && filter.ExpiryRecordId.Value != Guid.Empty)
         {
             sql += " AND ExpiryRecordId = @ExpiryRecordId";
             parameters.Add("ExpiryRecordId", filter.ExpiryRecordId);

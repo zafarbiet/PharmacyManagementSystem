@@ -21,7 +21,7 @@ public static class DrugPricingDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.DrugId != Guid.Empty)
+        if (filter.DrugId.HasValue && filter.DrugId.Value != Guid.Empty)
         {
             sql += " AND DrugId = @DrugId";
             parameters.Add("DrugId", filter.DrugId);

@@ -21,13 +21,13 @@ public static class DrugInventoryRackAssignmentDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.DrugInventoryId != Guid.Empty)
+        if (filter.DrugInventoryId.HasValue && filter.DrugInventoryId.Value != Guid.Empty)
         {
             sql += " AND DrugInventoryId = @DrugInventoryId";
             parameters.Add("DrugInventoryId", filter.DrugInventoryId);
         }
 
-        if (filter.RackId != Guid.Empty)
+        if (filter.RackId.HasValue && filter.RackId.Value != Guid.Empty)
         {
             sql += " AND RackId = @RackId";
             parameters.Add("RackId", filter.RackId);

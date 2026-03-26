@@ -21,13 +21,13 @@ public static class VendorExpiryReturnRequestDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.ExpiryRecordId != Guid.Empty)
+        if (filter.ExpiryRecordId.HasValue && filter.ExpiryRecordId.Value != Guid.Empty)
         {
             sql += " AND ExpiryRecordId = @ExpiryRecordId";
             parameters.Add("ExpiryRecordId", filter.ExpiryRecordId);
         }
 
-        if (filter.VendorId != Guid.Empty)
+        if (filter.VendorId.HasValue && filter.VendorId.Value != Guid.Empty)
         {
             sql += " AND VendorId = @VendorId";
             parameters.Add("VendorId", filter.VendorId);

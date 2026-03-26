@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PharmacyManagementSystem.Server.Data.SqlServer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8d5227ff9059d08ae1020c8169021f85e57e0265")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+82335d718555ca389998cc38c82bb3b71e58291e")]
 [assembly: System.Reflection.AssemblyProductAttribute("PharmacyManagementSystem.Server.Data.SqlServer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PharmacyManagementSystem.Server.Data.SqlServer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -21,7 +21,7 @@ public static class DamageDisposalRecordDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.DamageRecordId != Guid.Empty)
+        if (filter.DamageRecordId.HasValue && filter.DamageRecordId.Value != Guid.Empty)
         {
             sql += " AND DamageRecordId = @DamageRecordId";
             parameters.Add("DamageRecordId", filter.DamageRecordId);

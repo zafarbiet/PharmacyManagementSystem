@@ -27,13 +27,13 @@ public static class DailyDiaryEntryDatabaseCommandText
             parameters.Add("Category", filter.Category);
         }
 
-        if (filter.DrugId != Guid.Empty)
+        if (filter.DrugId.HasValue && filter.DrugId.Value != Guid.Empty)
         {
             sql += " AND DrugId = @DrugId";
             parameters.Add("DrugId", filter.DrugId);
         }
 
-        if (filter.PatientId != Guid.Empty)
+        if (filter.PatientId.HasValue && filter.PatientId.Value != Guid.Empty)
         {
             sql += " AND PatientId = @PatientId";
             parameters.Add("PatientId", filter.PatientId);

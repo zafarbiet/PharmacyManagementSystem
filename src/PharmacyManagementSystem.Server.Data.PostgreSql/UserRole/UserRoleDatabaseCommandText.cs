@@ -21,13 +21,13 @@ public static class UserRoleDatabaseCommandText
             parameters.Add("Id", filter.Id);
         }
 
-        if (filter.UserId != Guid.Empty)
+        if (filter.UserId.HasValue && filter.UserId.Value != Guid.Empty)
         {
             sql += " AND UserId = @UserId";
             parameters.Add("UserId", filter.UserId);
         }
 
-        if (filter.RoleId != Guid.Empty)
+        if (filter.RoleId.HasValue && filter.RoleId.Value != Guid.Empty)
         {
             sql += " AND RoleId = @RoleId";
             parameters.Add("RoleId", filter.RoleId);
