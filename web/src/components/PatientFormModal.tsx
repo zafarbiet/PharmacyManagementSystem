@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Checkbox } from 'antd';
+import { Modal, Form, Input, InputNumber, Checkbox, Divider } from 'antd';
 import type { Patient } from '@/api/localTypes';
 
 interface Props {
@@ -57,6 +57,14 @@ export default function PatientFormModal({ open, patient, onClose, onSubmit, loa
         </Form.Item>
         <Form.Item name="isSubscriber" valuePropName="checked">
           <Checkbox>Subscription Patient</Checkbox>
+        </Form.Item>
+        <Divider style={{ margin: '8px 0' }} />
+        <Form.Item
+          name="creditLimit"
+          label="Credit Limit (₹)"
+          tooltip="Maximum invoice total allowed for on-account purchases. Set to 0 for no limit."
+        >
+          <InputNumber min={0} precision={2} style={{ width: '100%' }} placeholder="0 = unlimited" />
         </Form.Item>
       </Form>
     </Modal>

@@ -5,6 +5,7 @@ using PharmacyManagementSystem.Server.AuditLog;
 using PharmacyManagementSystem.Server.Drug;
 using PharmacyManagementSystem.Server.DrugInventory;
 using PharmacyManagementSystem.Server.GstCalculation;
+using PharmacyManagementSystem.Server.Patient;
 
 namespace PharmacyManagementSystem.Server.CustomerInvoice;
 
@@ -14,7 +15,8 @@ public class SaveCustomerInvoiceAction(
     IDrugRepository drugRepository,
     IDrugInventoryRepository drugInventoryRepository,
     IGstCalculationService gstCalculationService,
-    ISaveAuditLogAction auditLogAction) : ISaveCustomerInvoiceAction
+    ISaveAuditLogAction auditLogAction,
+    IPatientRepository patientRepository) : ISaveCustomerInvoiceAction
 {
     private static readonly HashSet<string> ControlledSchedules =
         new(StringComparer.OrdinalIgnoreCase) { "H", "H1", "X" };
@@ -25,6 +27,7 @@ public class SaveCustomerInvoiceAction(
     private readonly IDrugInventoryRepository _drugInventoryRepository = drugInventoryRepository;
     private readonly IGstCalculationService _gstCalculationService = gstCalculationService;
     private readonly ISaveAuditLogAction _auditLogAction = auditLogAction;
+    private readonly IPatientRepository _patientRepository = patientRepository;
 
     public async Task<Common.CustomerInvoice.CustomerInvoice?> AddAsync(
         Common.CustomerInvoice.CustomerInvoice? customerInvoice,
@@ -41,6 +44,11 @@ public class SaveCustomerInvoiceAction(
         if (customerInvoice.Items.Count > 0)
         {
             (pendingAuditLogs, stockDeductions) = await ValidateAndComputeItemsAsync(customerInvoice, cancellationToken).ConfigureAwait(false);
+        }
+
+        if (customerInvoice.PatientId.HasValue && customerInvoice.PatientId.Value != Guid.Empty)
+        {
+            await CheckCreditLimitAsync(customerInvoice.PatientId.Value, customerInvoice.NetAmount, cancellationToken).ConfigureAwait(false);
         }
 
         customerInvoice.InvoiceNumber = await _repository
@@ -110,6 +118,19 @@ public class SaveCustomerInvoiceAction(
         await _repository.RemoveAsync(id, updatedBy, cancellationToken).ConfigureAwait(false);
 
         _logger.LogDebug("Removed customer invoice with id: {Id}.", id);
+    }
+
+    private async Task CheckCreditLimitAsync(Guid patientId, decimal invoiceNetAmount, CancellationToken cancellationToken)
+    {
+        var patient = await _patientRepository.GetByIdAsync(patientId.ToString(), cancellationToken)
+            .ConfigureAwait(false);
+
+        if (patient is null || patient.CreditLimit <= 0)
+            return;
+
+        if (invoiceNetAmount > patient.CreditLimit)
+            throw new BadRequestException(
+                $"Invoice total ₹{invoiceNetAmount:F2} exceeds the credit limit of ₹{patient.CreditLimit:F2} for patient '{patient.Name}'.");
     }
 
     private async Task<(List<Common.AuditLog.AuditLog> AuditLogs, List<(Common.DrugInventory.DrugInventory Batch, int Qty)> StockDeductions)> ValidateAndComputeItemsAsync(

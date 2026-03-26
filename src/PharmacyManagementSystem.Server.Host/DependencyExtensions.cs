@@ -40,10 +40,16 @@ using PharmacyManagementSystem.Server.DamageDisposalRecord;
 using PharmacyManagementSystem.Server.DailyDiaryEntry;
 using PharmacyManagementSystem.Server.Notification;
 using PharmacyManagementSystem.Server.Branch;
+using PharmacyManagementSystem.Server.MenuItem;
+using PharmacyManagementSystem.Server.RoleMenuItem;
 using PharmacyManagementSystem.Server.PaymentLedger;
 using PharmacyManagementSystem.Server.AuditLog;
+using PharmacyManagementSystem.Server.Manufacturer;
+using PharmacyManagementSystem.Server.Promotion;
+using PharmacyManagementSystem.Server.QuotationVendorResponse;
 using PharmacyManagementSystem.Server.GstCalculation;
 using PharmacyManagementSystem.Server.Auth;
+using PharmacyManagementSystem.Server.Host.Services;
 
 namespace PharmacyManagementSystem.Server.Host;
 
@@ -259,6 +265,16 @@ public static class DependencyExtensions
         services.AddScoped<IGetNotificationAction, GetNotificationAction>();
         services.AddScoped<ISaveNotificationAction, SaveNotificationAction>();
 
+        // MenuItem - Repository: Scoped; Actions: Scoped
+        services.AddScoped<IMenuItemRepository, MenuItemRepository>();
+        services.AddScoped<IGetMenuItemAction, GetMenuItemAction>();
+        services.AddScoped<ISaveMenuItemAction, SaveMenuItemAction>();
+
+        // RoleMenuItem - Repository: Scoped; Actions: Scoped
+        services.AddScoped<IRoleMenuItemRepository, RoleMenuItemRepository>();
+        services.AddScoped<IGetRoleMenuItemAction, GetRoleMenuItemAction>();
+        services.AddScoped<ISaveRoleMenuItemAction, SaveRoleMenuItemAction>();
+
         // Branch - Repository: Scoped; Actions: Scoped
         services.AddScoped<IBranchRepository, BranchRepository>();
         services.AddScoped<IGetBranchAction, GetBranchAction>();
@@ -273,6 +289,28 @@ public static class DependencyExtensions
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
         services.AddScoped<IGetAuditLogAction, GetAuditLogAction>();
         services.AddScoped<ISaveAuditLogAction, SaveAuditLogAction>();
+
+        // Manufacturer - Repository: Scoped; Actions: Scoped
+        services.AddScoped<IManufacturerRepository, ManufacturerRepository>();
+        services.AddScoped<IGetManufacturerAction, GetManufacturerAction>();
+        services.AddScoped<ISaveManufacturerAction, SaveManufacturerAction>();
+
+        // QuotationVendorResponse - Repository: Scoped; Actions: Scoped
+        services.AddScoped<IQuotationVendorResponseRepository, QuotationVendorResponseRepository>();
+        services.AddScoped<IGetQuotationVendorResponseAction, GetQuotationVendorResponseAction>();
+        services.AddScoped<ISaveQuotationVendorResponseAction, SaveQuotationVendorResponseAction>();
+
+        // Promotion - Repository: Scoped; Actions: Scoped
+        services.AddScoped<IPromotionRepository, PromotionRepository>();
+        services.AddScoped<IGetPromotionAction, GetPromotionAction>();
+        services.AddScoped<ISavePromotionAction, SavePromotionAction>();
+
+        // Prescription image parsing (Claude Vision)
+        services.AddHttpClient("Anthropic");
+        services.AddScoped<IParsePrescriptionImageAction, ParsePrescriptionImageAction>();
+
+        // Background services
+        services.AddHostedService<NearExpiryBackgroundService>();
 
         return services;
     }

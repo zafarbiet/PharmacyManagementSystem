@@ -4,6 +4,11 @@ using Npgsql;
 using PharmacyManagementSystem.Server.Data.PostgreSql.AppUser;
 using PharmacyManagementSystem.Server.Data.PostgreSql.AuditLog;
 using PharmacyManagementSystem.Server.Data.PostgreSql.Branch;
+using PharmacyManagementSystem.Server.Data.PostgreSql.Manufacturer;
+using PharmacyManagementSystem.Server.Data.PostgreSql.Promotion;
+using PharmacyManagementSystem.Server.Data.PostgreSql.QuotationVendorResponse;
+using PharmacyManagementSystem.Server.Data.PostgreSql.MenuItem;
+using PharmacyManagementSystem.Server.Data.PostgreSql.RoleMenuItem;
 using PharmacyManagementSystem.Server.Data.PostgreSql.CustomerInvoice;
 using PharmacyManagementSystem.Server.Data.PostgreSql.CustomerInvoiceItem;
 using PharmacyManagementSystem.Server.Data.PostgreSql.CustomerSubscription;
@@ -48,6 +53,11 @@ using PharmacyManagementSystem.Server.Data.PostgreSql.VendorExpiryReturnRequest;
 using PharmacyManagementSystem.Server.AppUser;
 using PharmacyManagementSystem.Server.AuditLog;
 using PharmacyManagementSystem.Server.Branch;
+using PharmacyManagementSystem.Server.Manufacturer;
+using PharmacyManagementSystem.Server.Promotion;
+using PharmacyManagementSystem.Server.QuotationVendorResponse;
+using PharmacyManagementSystem.Server.MenuItem;
+using PharmacyManagementSystem.Server.RoleMenuItem;
 using PharmacyManagementSystem.Server.CustomerInvoice;
 using PharmacyManagementSystem.Server.CustomerInvoiceItem;
 using PharmacyManagementSystem.Server.CustomerSubscription;
@@ -217,6 +227,12 @@ public static class DependencyExtensions
         // Notification - Storage Client: Scoped
         services.AddScoped<INotificationStorageClient, NpgsqlNotificationStorageClient>();
 
+        // MenuItem - Storage Client: Scoped
+        services.AddScoped<IMenuItemStorageClient, NpgsqlMenuItemStorageClient>();
+
+        // RoleMenuItem - Storage Client: Scoped
+        services.AddScoped<IRoleMenuItemStorageClient, NpgsqlRoleMenuItemStorageClient>();
+
         // Branch - Storage Client: Scoped
         services.AddScoped<IBranchStorageClient, NpgsqlBranchStorageClient>();
 
@@ -225,6 +241,15 @@ public static class DependencyExtensions
 
         // AuditLog - Storage Client: Scoped
         services.AddScoped<IAuditLogStorageClient, NpgsqlAuditLogStorageClient>();
+
+        // Manufacturer - Storage Client: Scoped
+        services.AddScoped<IManufacturerStorageClient, NpgsqlManufacturerStorageClient>();
+
+        // QuotationVendorResponse - Storage Client: Scoped
+        services.AddScoped<IQuotationVendorResponseStorageClient, NpgsqlQuotationVendorResponseStorageClient>();
+
+        // Promotion - Storage Client: Scoped
+        services.AddScoped<IPromotionStorageClient, NpgsqlPromotionStorageClient>();
 
         // Report - Scoped
         services.AddScoped<IReportService, NpgsqlReportService>();

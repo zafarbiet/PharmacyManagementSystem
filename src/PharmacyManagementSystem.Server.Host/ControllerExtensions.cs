@@ -27,6 +27,11 @@ using PharmacyManagementSystem.Common.DamageRecord;
 using PharmacyManagementSystem.Common.DamageDisposalRecord;
 using PharmacyManagementSystem.Common.DailyDiaryEntry;
 using PharmacyManagementSystem.Common.Notification;
+using PharmacyManagementSystem.Common.MenuItem;
+using PharmacyManagementSystem.Common.RoleMenuItem;
+using PharmacyManagementSystem.Common.Manufacturer;
+using PharmacyManagementSystem.Common.QuotationVendorResponse;
+using PharmacyManagementSystem.Common.Promotion;
 using PharmacyManagementSystem.Common.Exceptions;
 using PharmacyManagementSystem.Server.DrugCategory;
 using PharmacyManagementSystem.Server.Drug;
@@ -56,6 +61,11 @@ using PharmacyManagementSystem.Server.DamageRecord;
 using PharmacyManagementSystem.Server.DamageDisposalRecord;
 using PharmacyManagementSystem.Server.DailyDiaryEntry;
 using PharmacyManagementSystem.Server.Notification;
+using PharmacyManagementSystem.Server.MenuItem;
+using PharmacyManagementSystem.Server.RoleMenuItem;
+using PharmacyManagementSystem.Server.Manufacturer;
+using PharmacyManagementSystem.Server.QuotationVendorResponse;
+using PharmacyManagementSystem.Server.Promotion;
 using PharmacyManagementSystem.Common.AuditLog;
 using PharmacyManagementSystem.Common.Branch;
 using PharmacyManagementSystem.Common.PaymentLedger;
@@ -125,6 +135,11 @@ public static class ControllerExtensions
         app.AddCustomerInvoiceApis();
         app.AddCustomerInvoiceItemApis();
         app.AddAuthApis();
+        app.AddMenuItemApis();
+        app.AddRoleMenuItemApis();
+        app.AddManufacturerApis();
+        app.AddQuotationVendorResponseApis();
+        app.AddPromotionApis();
         return app;
     }
 
@@ -2456,6 +2471,18 @@ public static class ControllerExtensions
             var result = await reportService.GetStockValuationAsync(cancellationToken).ConfigureAwait(false);
             return Results.Ok(result);
         }).WithName("GetStockValuation");
+
+        group.MapGet("/profit-margin", async (
+            [FromServices] IReportService reportService,
+            [FromQuery] string? dateFrom,
+            [FromQuery] string? dateTo,
+            CancellationToken cancellationToken) =>
+        {
+            var from = DateOnly.TryParse(dateFrom, out var df) ? df : DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(-1));
+            var to   = DateOnly.TryParse(dateTo,   out var dt) ? dt : DateOnly.FromDateTime(DateTime.UtcNow);
+            var result = await reportService.GetProfitMarginReportAsync(from, to, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetProfitMarginReport");
     }
 
     private static void AddCustomerInvoiceApis(this WebApplication app)
@@ -2744,6 +2771,19 @@ public static class ControllerExtensions
             await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
             return Results.NoContent();
         }).WithName("DeletePrescription");
+
+        group.MapPost("/parse-image", async (
+            IFormFile file,
+            [FromServices] IParsePrescriptionImageAction action,
+            CancellationToken cancellationToken) =>
+        {
+            if (file is null || file.Length == 0)
+                return Results.BadRequest("No image file provided.");
+
+            await using var stream = file.OpenReadStream();
+            var drugs = await action.ParseAsync(stream, file.ContentType, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(new { drugs });
+        }).WithName("ParsePrescriptionImage").DisableAntiforgery();
     }
 
     private static void AddPrescriptionItemApis(this WebApplication app)
@@ -2810,5 +2850,326 @@ public static class ControllerExtensions
             await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
             return Results.NoContent();
         }).WithName("DeletePrescriptionItem");
+    }
+
+    private static void AddMenuItemApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/menu-items").WithTags("MenuItems");
+
+        group.MapGet("/", async (
+            [FromServices] IGetMenuItemAction action,
+            [AsParameters] MenuItemFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetMenuItems");
+
+        group.MapGet("/for-user", async (
+            string username,
+            [FromServices] IGetMenuItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetForUserAsync(username, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetMenuItemsForUser");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetMenuItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetMenuItemById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.MenuItem.MenuItem menuItem,
+            [FromServices] ISaveMenuItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(menuItem, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/menu-items/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreateMenuItem");
+
+        group.MapPut("/{id}", async (
+            Guid id,
+            [FromBody] Common.MenuItem.MenuItem menuItem,
+            [FromServices] ISaveMenuItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                menuItem.Id = id;
+                var result = await action.UpdateAsync(menuItem, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("UpdateMenuItem");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISaveMenuItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeleteMenuItem");
+    }
+
+    private static void AddRoleMenuItemApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/role-menu-items").WithTags("RoleMenuItems");
+
+        group.MapGet("/", async (
+            [FromServices] IGetRoleMenuItemAction action,
+            [AsParameters] RoleMenuItemFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetRoleMenuItems");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetRoleMenuItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetRoleMenuItemById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.RoleMenuItem.RoleMenuItem roleMenuItem,
+            [FromServices] ISaveRoleMenuItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(roleMenuItem, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/role-menu-items/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreateRoleMenuItem");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISaveRoleMenuItemAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeleteRoleMenuItem");
+    }
+
+    private static void AddManufacturerApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/manufacturers").WithTags("Manufacturers");
+
+        group.MapGet("/", async (
+            [FromServices] IGetManufacturerAction action,
+            [AsParameters] ManufacturerFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetManufacturers");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetManufacturerAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetManufacturerById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.Manufacturer.Manufacturer manufacturer,
+            [FromServices] ISaveManufacturerAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(manufacturer, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/manufacturers/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreateManufacturer");
+
+        group.MapPut("/{id}", async (
+            Guid id,
+            [FromBody] Common.Manufacturer.Manufacturer manufacturer,
+            [FromServices] ISaveManufacturerAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                manufacturer.Id = id;
+                var result = await action.UpdateAsync(manufacturer, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("UpdateManufacturer");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISaveManufacturerAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeleteManufacturer");
+    }
+
+    private static void AddQuotationVendorResponseApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/quotation-vendor-responses").WithTags("QuotationVendorResponses");
+
+        group.MapGet("/", async (
+            [FromServices] IGetQuotationVendorResponseAction action,
+            [AsParameters] QuotationVendorResponseFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetQuotationVendorResponses");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetQuotationVendorResponseAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetQuotationVendorResponseById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.QuotationVendorResponse.QuotationVendorResponse response,
+            [FromServices] ISaveQuotationVendorResponseAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(response, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/quotation-vendor-responses/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreateQuotationVendorResponse");
+
+        group.MapPut("/{id}", async (
+            Guid id,
+            [FromBody] Common.QuotationVendorResponse.QuotationVendorResponse response,
+            [FromServices] ISaveQuotationVendorResponseAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                response.Id = id;
+                var result = await action.UpdateAsync(response, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("UpdateQuotationVendorResponse");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISaveQuotationVendorResponseAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeleteQuotationVendorResponse");
+    }
+
+    private static void AddPromotionApis(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/promotions").WithTags("Promotions");
+
+        group.MapGet("/", async (
+            [FromServices] IGetPromotionAction action,
+            [AsParameters] PromotionFilter filter,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByFilterCriteriaAsync(filter, cancellationToken).ConfigureAwait(false);
+            return Results.Ok(result);
+        }).WithName("GetPromotions");
+
+        group.MapGet("/{id}", async (
+            string id,
+            [FromServices] IGetPromotionAction action,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await action.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        }).WithName("GetPromotionById");
+
+        group.MapPost("/", async (
+            [FromBody] Common.Promotion.Promotion promotion,
+            [FromServices] ISavePromotionAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await action.AddAsync(promotion, cancellationToken).ConfigureAwait(false);
+                return Results.Created($"/api/promotions/{result?.Id}", result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("CreatePromotion");
+
+        group.MapPut("/{id}", async (
+            Guid id,
+            [FromBody] Common.Promotion.Promotion promotion,
+            [FromServices] ISavePromotionAction action,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                promotion.Id = id;
+                var result = await action.UpdateAsync(promotion, cancellationToken).ConfigureAwait(false);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            }
+            catch (BadRequestException ex)
+            {
+                return Results.UnprocessableEntity(ex.Message);
+            }
+        }).WithName("UpdatePromotion");
+
+        group.MapDelete("/{id}", async (
+            Guid id,
+            [FromServices] ISavePromotionAction action,
+            CancellationToken cancellationToken) =>
+        {
+            await action.RemoveAsync(id, "system", cancellationToken).ConfigureAwait(false);
+            return Results.NoContent();
+        }).WithName("DeletePromotion");
     }
 }

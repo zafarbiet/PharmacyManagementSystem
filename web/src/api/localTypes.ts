@@ -208,6 +208,7 @@ export interface Patient {
   age: number | null;
   gstin: string | null;
   creditBalance: number;
+  creditLimit: number;
   isSubscriber: boolean;
   isActive: boolean;
   updatedAt: string;
@@ -307,6 +308,7 @@ export interface Role {
   id: string;
   name: string | null;
   description: string | null;
+  permissions: number;
   isActive: boolean;
   updatedAt: string;
   updatedBy: string | null;

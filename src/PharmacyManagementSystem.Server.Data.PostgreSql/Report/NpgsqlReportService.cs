@@ -113,7 +113,7 @@ public class NpgsqlReportService(ILogger<NpgsqlReportService> logger, INpgsqlDbC
                 SUM(di.QuantityInStock) * d.Mrp AS TotalMrpValue,
                 AVG(poi.UnitPrice) AS AverageCostPrice,
                 SUM(di.QuantityInStock) * AVG(poi.UnitPrice) AS TotalCostValue
-            FROM PMS.DrugInventories di
+            FROM PMS.DrugInventory di
             INNER JOIN PMS.Drugs d ON d.Id = di.DrugId
             LEFT JOIN PMS.PurchaseOrderItems poi ON poi.DrugId = di.DrugId AND poi.IsActive = true
             WHERE di.IsActive = true AND d.IsActive = true
@@ -135,6 +135,80 @@ public class NpgsqlReportService(ILogger<NpgsqlReportService> logger, INpgsqlDbC
             AverageCostPrice = r.AverageCostPrice,
             TotalCostValue = r.TotalCostValue
         }).ToList();
+    }
+
+    public async Task<IReadOnlyList<ProfitMarginItem>> GetProfitMarginReportAsync(DateOnly dateFrom, DateOnly dateTo, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Generating profit margin report for {DateFrom} to {DateTo}.", dateFrom, dateTo);
+
+        var parameters = new DynamicParameters();
+        parameters.Add("DateFrom", dateFrom.ToDateTime(TimeOnly.MinValue));
+        parameters.Add("DateTo", dateTo.ToDateTime(TimeOnly.MaxValue));
+
+        var sql = new DatabaseSqlWithParameters
+        {
+            SqlStatement = @"SELECT
+                d.""Id""                                                                            AS ""DrugId"",
+                d.""Name""                                                                          AS ""DrugName"",
+                cii.""HsnCode"",
+                SUM(cii.""Quantity"")                                                               AS ""TotalQtySold"",
+                COALESCE(SUM(cii.""Quantity""::DECIMAL * cii.""UnitPrice""), 0)                     AS ""TotalRevenue"",
+                COALESCE(AVG(dp.""CostPrice""), 0)                                                  AS ""AverageCostPrice"",
+                COALESCE(SUM(cii.""Quantity""::DECIMAL * COALESCE(dp.""CostPrice"", 0)), 0)         AS ""TotalCost"",
+                COALESCE(SUM(cii.""Quantity""::DECIMAL * cii.""UnitPrice""), 0)
+                  - COALESCE(SUM(cii.""Quantity""::DECIMAL * COALESCE(dp.""CostPrice"", 0)), 0)     AS ""GrossProfit"",
+                COALESCE(d.""Mrp"", 0)                                                              AS ""Mrp"",
+                CASE WHEN COALESCE(SUM(cii.""Quantity""::DECIMAL * cii.""UnitPrice""), 0) > 0
+                     THEN (COALESCE(SUM(cii.""Quantity""::DECIMAL * cii.""UnitPrice""), 0)
+                           - COALESCE(SUM(cii.""Quantity""::DECIMAL * COALESCE(dp.""CostPrice"", 0)), 0))
+                          / SUM(cii.""Quantity""::DECIMAL * cii.""UnitPrice"") * 100
+                     ELSE 0 END                                                                     AS ""MarginPct"",
+                CASE WHEN COALESCE(d.""Mrp"", 0) > 0 AND COALESCE(AVG(dp.""CostPrice""), 0) > 0
+                     THEN (d.""Mrp"" - AVG(dp.""CostPrice"")) / d.""Mrp"" * 100
+                     ELSE NULL END                                                                  AS ""MrpMarginPct""
+            FROM PMS.""CustomerInvoiceItems"" cii
+            INNER JOIN PMS.""CustomerInvoices"" ci ON ci.""Id"" = cii.""InvoiceId"" AND ci.""IsActive"" = true
+            INNER JOIN PMS.""Drugs"" d             ON d.""Id"" = cii.""DrugId"" AND d.""IsActive"" = true
+            LEFT  JOIN PMS.""DrugPricing"" dp      ON dp.""DrugId"" = d.""Id"" AND dp.""IsActive"" = true
+            WHERE cii.""IsActive"" = true
+              AND ci.""InvoiceDate"" >= @DateFrom
+              AND ci.""InvoiceDate"" <= @DateTo
+            GROUP BY d.""Id"", d.""Name"", cii.""HsnCode"", d.""Mrp""
+            ORDER BY ""GrossProfit"" DESC",
+            Parameters = parameters
+        };
+
+        var rows = await _dbClient.QueryAsync<ProfitMarginRow>(sql, cancellationToken).ConfigureAwait(false);
+
+        return rows.Select(r => new ProfitMarginItem
+        {
+            DrugId = r.DrugId,
+            DrugName = r.DrugName,
+            HsnCode = r.HsnCode,
+            TotalQtySold = r.TotalQtySold,
+            TotalRevenue = r.TotalRevenue,
+            AverageCostPrice = r.AverageCostPrice,
+            TotalCost = r.TotalCost,
+            GrossProfit = r.GrossProfit,
+            Mrp = r.Mrp,
+            MarginPct = r.MarginPct,
+            MrpMarginPct = r.MrpMarginPct
+        }).ToList();
+    }
+
+    private sealed class ProfitMarginRow
+    {
+        public Guid DrugId { get; set; }
+        public string? DrugName { get; set; }
+        public string? HsnCode { get; set; }
+        public int TotalQtySold { get; set; }
+        public decimal TotalRevenue { get; set; }
+        public decimal? AverageCostPrice { get; set; }
+        public decimal TotalCost { get; set; }
+        public decimal GrossProfit { get; set; }
+        public decimal Mrp { get; set; }
+        public decimal MarginPct { get; set; }
+        public decimal? MrpMarginPct { get; set; }
     }
 
     private sealed class DailySalesReportRow
