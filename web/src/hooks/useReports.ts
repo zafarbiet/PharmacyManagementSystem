@@ -71,3 +71,33 @@ export function useStockValuationReport() {
     retry: false,
   });
 }
+
+export interface ProfitMarginItem {
+  drugId: string;
+  drugName: string | null;
+  hsnCode: string | null;
+  totalQtySold: number;
+  totalRevenue: number;
+  totalCost: number;
+  grossProfit: number;
+  marginPct: number;
+  mrp: number;
+  averageCostPrice: number | null;
+  mrpMarginPct: number | null;
+}
+
+async function fetchProfitMargin(dateFrom: string, dateTo: string): Promise<ProfitMarginItem[]> {
+  const { data } = await axiosClient.get<ProfitMarginItem[]>('/reports/profit-margin', {
+    params: { dateFrom, dateTo },
+  });
+  return data;
+}
+
+export function useProfitMarginReport(dateFrom: string, dateTo: string) {
+  return useQuery({
+    queryKey: ['reports', 'profit-margin', dateFrom, dateTo],
+    queryFn: () => fetchProfitMargin(dateFrom, dateTo),
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+  });
+}

@@ -6,7 +6,7 @@ namespace PharmacyManagementSystem.Server.Data.PostgreSql.Role;
 
 public static class RoleDatabaseCommandText
 {
-    private const string SelectColumns = "Id, Name, Description, UpdatedAt, UpdatedBy, IsActive";
+    private const string SelectColumns = "Id, Name, Description, Permissions, UpdatedAt, UpdatedBy, IsActive";
 
     public static Task<DatabaseSqlWithParameters> GetSelectSql(RoleFilter filter)
     {
@@ -69,15 +69,16 @@ public static class RoleDatabaseCommandText
         var parameters = new DynamicParameters();
         parameters.Add("Name", role.Name);
         parameters.Add("Description", role.Description);
+        parameters.Add("Permissions", role.Permissions);
         parameters.Add("UpdatedAt", DateTimeOffset.UtcNow);
         parameters.Add("UpdatedBy", role.UpdatedBy);
         parameters.Add("IsActive", true);
 
         return Task.FromResult(new DatabaseSqlWithParameters
         {
-            SqlStatement = @"INSERT INTO PMS.Roles (Id, Name, Description, UpdatedAt, UpdatedBy, IsActive)
-                             RETURNING *
-                             VALUES (gen_random_uuid(), @Name, @Description, @UpdatedAt, @UpdatedBy, @IsActive)",
+            SqlStatement = @"INSERT INTO PMS.Roles (Id, Name, Description, Permissions, UpdatedAt, UpdatedBy, IsActive)
+                             VALUES (gen_random_uuid(), @Name, @Description, @Permissions, @UpdatedAt, @UpdatedBy, @IsActive)
+                             RETURNING *",
             Parameters = parameters
         });
     }
@@ -90,16 +91,17 @@ public static class RoleDatabaseCommandText
         parameters.Add("Id", role.Id);
         parameters.Add("Name", role.Name);
         parameters.Add("Description", role.Description);
+        parameters.Add("Permissions", role.Permissions);
         parameters.Add("UpdatedAt", DateTimeOffset.UtcNow);
         parameters.Add("UpdatedBy", role.UpdatedBy);
 
         return Task.FromResult(new DatabaseSqlWithParameters
         {
             SqlStatement = @"UPDATE PMS.Roles
-                             SET Name = @Name, Description = @Description,
+                             SET Name = @Name, Description = @Description, Permissions = @Permissions,
                                  UpdatedAt = @UpdatedAt, UpdatedBy = @UpdatedBy
-                             RETURNING *
-                             WHERE Id = @Id",
+                             WHERE Id = @Id
+                             RETURNING *",
             Parameters = parameters
         });
     }
@@ -117,8 +119,8 @@ public static class RoleDatabaseCommandText
         {
             SqlStatement = @"UPDATE PMS.Roles
                              SET IsActive = false, UpdatedAt = @UpdatedAt, UpdatedBy = @UpdatedBy
-                             RETURNING *
-                             WHERE Id = @Id",
+                             WHERE Id = @Id
+                             RETURNING *",
             Parameters = parameters
         });
     }

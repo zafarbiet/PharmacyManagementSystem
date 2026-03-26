@@ -6,7 +6,7 @@ namespace PharmacyManagementSystem.Server.Data.SqlServer.Patient;
 
 public static class PatientDatabaseCommandText
 {
-    private const string SelectColumns = "Id, Name, ContactNumber, Email, Address, UpdatedAt, UpdatedBy, IsActive";
+    private const string SelectColumns = "Id, Name, ContactNumber, Email, Address, Age, Gstin, CreditBalance, CreditLimit, IsSubscriber, UpdatedAt, UpdatedBy, IsActive";
 
     public static Task<DatabaseSqlWithParameters> GetSelectSql(PatientFilter filter)
     {
@@ -77,15 +77,20 @@ public static class PatientDatabaseCommandText
         parameters.Add("ContactNumber", patient.ContactNumber);
         parameters.Add("Email", patient.Email);
         parameters.Add("Address", patient.Address);
+        parameters.Add("Age", patient.Age);
+        parameters.Add("Gstin", patient.Gstin);
+        parameters.Add("CreditBalance", patient.CreditBalance);
+        parameters.Add("CreditLimit", patient.CreditLimit);
+        parameters.Add("IsSubscriber", patient.IsSubscriber);
         parameters.Add("UpdatedAt", DateTimeOffset.UtcNow);
         parameters.Add("UpdatedBy", patient.UpdatedBy);
         parameters.Add("IsActive", true);
 
         return Task.FromResult(new DatabaseSqlWithParameters
         {
-            SqlStatement = @"INSERT INTO PMS.Patients (Id, Name, ContactNumber, Email, Address, UpdatedAt, UpdatedBy, IsActive)
+            SqlStatement = @"INSERT INTO PMS.Patients (Id, Name, ContactNumber, Email, Address, Age, Gstin, CreditBalance, CreditLimit, IsSubscriber, UpdatedAt, UpdatedBy, IsActive)
                              OUTPUT INSERTED.*
-                             VALUES (NEWID(), @Name, @ContactNumber, @Email, @Address, @UpdatedAt, @UpdatedBy, @IsActive)",
+                             VALUES (NEWID(), @Name, @ContactNumber, @Email, @Address, @Age, @Gstin, @CreditBalance, @CreditLimit, @IsSubscriber, @UpdatedAt, @UpdatedBy, @IsActive)",
             Parameters = parameters
         });
     }
@@ -100,6 +105,11 @@ public static class PatientDatabaseCommandText
         parameters.Add("ContactNumber", patient.ContactNumber);
         parameters.Add("Email", patient.Email);
         parameters.Add("Address", patient.Address);
+        parameters.Add("Age", patient.Age);
+        parameters.Add("Gstin", patient.Gstin);
+        parameters.Add("CreditBalance", patient.CreditBalance);
+        parameters.Add("CreditLimit", patient.CreditLimit);
+        parameters.Add("IsSubscriber", patient.IsSubscriber);
         parameters.Add("UpdatedAt", DateTimeOffset.UtcNow);
         parameters.Add("UpdatedBy", patient.UpdatedBy);
 
@@ -107,7 +117,10 @@ public static class PatientDatabaseCommandText
         {
             SqlStatement = @"UPDATE PMS.Patients
                              SET Name = @Name, ContactNumber = @ContactNumber, Email = @Email,
-                                 Address = @Address, UpdatedAt = @UpdatedAt, UpdatedBy = @UpdatedBy
+                                 Address = @Address, Age = @Age, Gstin = @Gstin,
+                                 CreditBalance = @CreditBalance, CreditLimit = @CreditLimit,
+                                 IsSubscriber = @IsSubscriber,
+                                 UpdatedAt = @UpdatedAt, UpdatedBy = @UpdatedBy
                              OUTPUT INSERTED.*
                              WHERE Id = @Id",
             Parameters = parameters

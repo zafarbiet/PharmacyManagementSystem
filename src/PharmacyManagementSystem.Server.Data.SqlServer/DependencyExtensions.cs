@@ -5,7 +5,12 @@ using Microsoft.Extensions.DependencyInjection;
 using PharmacyManagementSystem.Server.AppUser;
 using PharmacyManagementSystem.Server.AuditLog;
 using PharmacyManagementSystem.Server.Branch;
+using PharmacyManagementSystem.Server.Manufacturer;
+using PharmacyManagementSystem.Server.Promotion;
+using PharmacyManagementSystem.Server.QuotationVendorResponse;
 using PharmacyManagementSystem.Server.CustomerInvoice;
+using PharmacyManagementSystem.Server.MenuItem;
+using PharmacyManagementSystem.Server.RoleMenuItem;
 using PharmacyManagementSystem.Server.CustomerInvoiceItem;
 using PharmacyManagementSystem.Server.CustomerSubscription;
 using PharmacyManagementSystem.Server.CustomerSubscriptionItem;
@@ -48,6 +53,11 @@ using PharmacyManagementSystem.Server.Data.SqlServer.AppUser;
 using PharmacyManagementSystem.Server.Data.SqlServer.AuditLog;
 using PharmacyManagementSystem.Server.Data.SqlServer.Branch;
 using PharmacyManagementSystem.Server.Data.SqlServer.CustomerInvoice;
+using PharmacyManagementSystem.Server.Data.SqlServer.Manufacturer;
+using PharmacyManagementSystem.Server.Data.SqlServer.Promotion;
+using PharmacyManagementSystem.Server.Data.SqlServer.QuotationVendorResponse;
+using PharmacyManagementSystem.Server.Data.SqlServer.MenuItem;
+using PharmacyManagementSystem.Server.Data.SqlServer.RoleMenuItem;
 using PharmacyManagementSystem.Server.Data.SqlServer.CustomerInvoiceItem;
 using PharmacyManagementSystem.Server.Data.SqlServer.CustomerSubscription;
 using PharmacyManagementSystem.Server.Data.SqlServer.CustomerSubscriptionItem;
@@ -217,6 +227,12 @@ public static class DependencyExtensions
         // Notification - Storage Client: Scoped
         services.AddScoped<INotificationStorageClient, SqlServerNotificationStorageClient>();
 
+        // MenuItem - Storage Client: Scoped
+        services.AddScoped<IMenuItemStorageClient, SqlServerMenuItemStorageClient>();
+
+        // RoleMenuItem - Storage Client: Scoped
+        services.AddScoped<IRoleMenuItemStorageClient, SqlServerRoleMenuItemStorageClient>();
+
         // Branch - Storage Client: Scoped
         services.AddScoped<IBranchStorageClient, SqlServerBranchStorageClient>();
 
@@ -225,6 +241,15 @@ public static class DependencyExtensions
 
         // AuditLog - Storage Client: Scoped
         services.AddScoped<IAuditLogStorageClient, SqlServerAuditLogStorageClient>();
+
+        // Manufacturer - Storage Client: Scoped
+        services.AddScoped<IManufacturerStorageClient, SqlServerManufacturerStorageClient>();
+
+        // QuotationVendorResponse - Storage Client: Scoped
+        services.AddScoped<IQuotationVendorResponseStorageClient, SqlServerQuotationVendorResponseStorageClient>();
+
+        // Promotion - Storage Client: Scoped
+        services.AddScoped<IPromotionStorageClient, SqlServerPromotionStorageClient>();
 
         // Report - Scoped
         services.AddScoped<IReportService, SqlServerReportService>();

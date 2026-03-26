@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Layout, Menu } from 'antd';
+import { useState, useMemo } from 'react';
+import { Layout, Menu, Spin } from 'antd';
 import {
   MedicineBoxOutlined,
   ShoppingCartOutlined,
@@ -19,108 +19,75 @@ import {
   BellOutlined,
   ExperimentOutlined,
   InboxOutlined,
+  MenuOutlined,
+  DashboardOutlined,
+  QuestionCircleOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useGlobalStore } from '@/store/globalStore';
+import { useMenuItemsForUser } from '@/hooks/useMenuItems';
+import type { MenuItem } from '@/hooks/useMenuItems';
 
 const { Sider } = Layout;
 
-const menuItems = [
-  {
-    key: '/',
-    icon: <BarChartOutlined />,
-    label: 'Dashboard',
-  },
-  {
-    key: '/inventory/drugs',
-    icon: <MedicineBoxOutlined />,
-    label: 'Drug Inventory',
-  },
-  {
-    key: '/drugs',
-    icon: <MedicineBoxOutlined />,
-    label: 'Drug Master',
-  },
-  {
-    key: '/purchase-orders',
-    icon: <ShoppingCartOutlined />,
-    label: 'Purchase Orders',
-  },
-  {
-    key: '/patients',
-    icon: <ContactsOutlined />,
-    label: 'Patients',
-  },
-  {
-    key: '/debt',
-    icon: <CreditCardOutlined />,
-    label: 'Debt Management',
-  },
-  {
-    key: '/invoices',
-    icon: <FileTextOutlined />,
-    label: 'Invoices',
-  },
-  {
-    key: '/expired-drugs',
-    icon: <WarningOutlined />,
-    label: 'Expiry Management',
-  },
-  {
-    key: '/inventory/damage',
-    icon: <AlertOutlined />,
-    label: 'Damage Records',
-  },
-  {
-    key: '/subscriptions',
-    icon: <ExperimentOutlined />,
-    label: 'Subscriptions',
-  },
-  {
-    key: '/notifications',
-    icon: <BellOutlined />,
-    label: 'Notifications',
-  },
-  {
-    key: '/vendors',
-    icon: <TeamOutlined />,
-    label: 'Vendors',
-  },
-  {
-    key: 'quotations',
-    icon: <SolutionOutlined />,
-    label: 'Quotations',
-    children: [
-      { key: '/quotations/rfq', icon: <SendOutlined />, label: 'RFQ' },
-      { key: '/quotations', icon: <FileTextOutlined />, label: 'Received' },
-    ],
-  },
-  {
-    key: '/reports',
-    icon: <BarChartOutlined />,
-    label: 'Reports',
-  },
-  {
-    key: '/users',
-    icon: <UserOutlined />,
-    label: 'Users',
-  },
-  {
-    key: 'settings',
-    icon: <SettingOutlined />,
-    label: 'Settings',
-    children: [
-      { key: '/settings/branches', icon: <BankOutlined />, label: 'Branches' },
-      { key: '/settings/drug-categories', icon: <TagsOutlined />, label: 'Drug Categories' },
-      { key: '/settings/roles', icon: <UserOutlined />, label: 'Roles' },
-      { key: '/settings/storage', icon: <InboxOutlined />, label: 'Storage & Racks' },
-    ],
-  },
-];
+const iconMap: Record<string, React.ReactNode> = {
+  BarChartOutlined: <BarChartOutlined />,
+  DashboardOutlined: <DashboardOutlined />,
+  MedicineBoxOutlined: <MedicineBoxOutlined />,
+  ShoppingCartOutlined: <ShoppingCartOutlined />,
+  FileTextOutlined: <FileTextOutlined />,
+  WarningOutlined: <WarningOutlined />,
+  TeamOutlined: <TeamOutlined />,
+  UserOutlined: <UserOutlined />,
+  SettingOutlined: <SettingOutlined />,
+  BankOutlined: <BankOutlined />,
+  TagsOutlined: <TagsOutlined />,
+  SolutionOutlined: <SolutionOutlined />,
+  SendOutlined: <SendOutlined />,
+  ContactsOutlined: <ContactsOutlined />,
+  CreditCardOutlined: <CreditCardOutlined />,
+  AlertOutlined: <AlertOutlined />,
+  BellOutlined: <BellOutlined />,
+  ExperimentOutlined: <ExperimentOutlined />,
+  InboxOutlined: <InboxOutlined />,
+  MenuOutlined: <MenuOutlined />,
+};
+
+function buildMenuItems(items: MenuItem[]) {
+  const topLevel = items.filter((m) => !m.parentKey);
+  return topLevel.map((item) => {
+    const icon = item.icon ? (iconMap[item.icon] ?? <QuestionCircleOutlined />) : undefined;
+    const childItems = items.filter((c) => c.parentKey === item.key);
+
+    if (childItems.length > 0) {
+      return {
+        key: item.key!,
+        icon,
+        label: item.label,
+        children: childItems.map((child) => ({
+          key: child.key!,
+          icon: child.icon ? (iconMap[child.icon] ?? <QuestionCircleOutlined />) : undefined,
+          label: child.label,
+        })),
+      };
+    }
+
+    return { key: item.key!, icon, label: item.label };
+  });
+}
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const currentUser = useGlobalStore((s) => s.currentUser);
+
+  const { data: menuItems, isLoading } = useMenuItemsForUser(currentUser?.username);
+
+  const antMenuItems = useMemo(
+    () => (menuItems ? buildMenuItems(menuItems) : []),
+    [menuItems],
+  );
 
   return (
     <Sider
@@ -146,13 +113,19 @@ export default function Sidebar() {
       >
         {collapsed ? 'PMS' : 'Pharmacy MS'}
       </div>
-      <Menu
-        theme="dark"
-        mode="inline"
-        selectedKeys={[location.pathname]}
-        items={menuItems}
-        onClick={({ key }) => navigate(key)}
-      />
+      {isLoading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 24 }}>
+          <Spin size="small" />
+        </div>
+      ) : (
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[location.pathname]}
+          items={antMenuItems}
+          onClick={({ key }) => navigate(key)}
+        />
+      )}
     </Sider>
   );
 }

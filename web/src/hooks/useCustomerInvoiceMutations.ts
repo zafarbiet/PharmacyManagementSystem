@@ -11,6 +11,7 @@ export interface InvoiceLineItemPayload {
 }
 
 export interface CreateInvoicePayload {
+  patientId?: string | null;
   invoiceDate: string;
   paymentMethod: string;
   status: string;

@@ -22,7 +22,9 @@ import {
   useDailySalesReport,
   useMonthlySalesReport,
   useStockValuationReport,
+  useProfitMarginReport,
   type StockValuationItem,
+  type ProfitMarginItem,
 } from '@/hooks/useReports';
 
 const { Title } = Typography;
@@ -361,6 +363,180 @@ function StockValuationTab() {
   );
 }
 
+// ─── Profit Margin ────────────────────────────────────────────────────────────
+
+const marginColumns: ColumnsType<ProfitMarginItem> = [
+  {
+    title: 'Drug',
+    dataIndex: 'drugName',
+    render: (v: string | null) => v ?? '—',
+    sorter: (a, b) => (a.drugName ?? '').localeCompare(b.drugName ?? ''),
+  },
+  {
+    title: 'HSN',
+    dataIndex: 'hsnCode',
+    width: 90,
+    render: (v: string | null) => v ? <Tag style={{ fontFamily: 'monospace' }}>{v}</Tag> : <span style={{ color: '#bbb' }}>—</span>,
+  },
+  {
+    title: 'Qty Sold',
+    dataIndex: 'totalQtySold',
+    align: 'right',
+    width: 90,
+    sorter: (a, b) => a.totalQtySold - b.totalQtySold,
+  },
+  {
+    title: 'MRP',
+    dataIndex: 'mrp',
+    align: 'right',
+    width: 100,
+    render: (v: number) => fmt(v),
+    sorter: (a, b) => a.mrp - b.mrp,
+  },
+  {
+    title: 'Avg Cost',
+    dataIndex: 'averageCostPrice',
+    align: 'right',
+    width: 100,
+    render: (v: number | null) => v != null ? fmt(v) : <span style={{ color: '#bbb' }}>N/A</span>,
+    sorter: (a, b) => (a.averageCostPrice ?? 0) - (b.averageCostPrice ?? 0),
+  },
+  {
+    title: 'Revenue',
+    dataIndex: 'totalRevenue',
+    align: 'right',
+    width: 110,
+    render: (v: number) => fmt(v),
+    sorter: (a, b) => a.totalRevenue - b.totalRevenue,
+  },
+  {
+    title: 'Cost',
+    dataIndex: 'totalCost',
+    align: 'right',
+    width: 110,
+    render: (v: number) => fmt(v),
+    sorter: (a, b) => a.totalCost - b.totalCost,
+  },
+  {
+    title: 'Gross Profit',
+    dataIndex: 'grossProfit',
+    align: 'right',
+    width: 120,
+    defaultSortOrder: 'descend',
+    render: (v: number) => (
+      <strong style={{ color: v >= 0 ? '#3f8600' : '#cf1322' }}>{fmt(v)}</strong>
+    ),
+    sorter: (a, b) => a.grossProfit - b.grossProfit,
+  },
+  {
+    title: 'Margin %',
+    dataIndex: 'marginPct',
+    align: 'right',
+    width: 100,
+    render: (v: number) => {
+      const color = v >= 20 ? '#3f8600' : v >= 10 ? '#d46b08' : '#cf1322';
+      return <Tag color={color}>{v.toFixed(1)}%</Tag>;
+    },
+    sorter: (a, b) => a.marginPct - b.marginPct,
+  },
+  {
+    title: 'MRP Margin %',
+    dataIndex: 'mrpMarginPct',
+    align: 'right',
+    width: 115,
+    render: (v: number | null) => {
+      if (v == null) return <span style={{ color: '#bbb' }}>N/A</span>;
+      const color = v >= 20 ? '#3f8600' : v >= 10 ? '#d46b08' : '#cf1322';
+      return <Tag color={color}>{v.toFixed(1)}%</Tag>;
+    },
+    sorter: (a, b) => (a.mrpMarginPct ?? 0) - (b.mrpMarginPct ?? 0),
+  },
+];
+
+function ProfitMarginTab() {
+  const [range, setRange] = useState<[Dayjs, Dayjs]>([dayjs().startOf('month'), dayjs()]);
+  const [queriedRange, setQueriedRange] = useState<[string, string]>([
+    dayjs().startOf('month').format('YYYY-MM-DD'),
+    dayjs().format('YYYY-MM-DD'),
+  ]);
+
+  const reportQuery = useProfitMarginReport(queriedRange[0], queriedRange[1]);
+  const items = reportQuery.data ?? [];
+
+  const totalRevenue = items.reduce((s, i) => s + i.totalRevenue, 0);
+  const totalProfit = items.reduce((s, i) => s + i.grossProfit, 0);
+  const overallMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+
+  return (
+    <>
+      <Row gutter={8} style={{ marginBottom: 24 }}>
+        <Col>
+          <DatePicker.RangePicker
+            value={range}
+            onChange={(v) => v && setRange(v as [Dayjs, Dayjs])}
+            format="DD MMM YYYY"
+            disabledDate={(d) => d.isAfter(dayjs(), 'day')}
+            allowClear={false}
+          />
+        </Col>
+        <Col>
+          <Button
+            type="primary"
+            icon={<SearchOutlined />}
+            onClick={() => setQueriedRange([range[0].format('YYYY-MM-DD'), range[1].format('YYYY-MM-DD')])}
+            loading={reportQuery.isFetching}
+          >
+            Load Report
+          </Button>
+        </Col>
+      </Row>
+
+      {reportQuery.isError && !reportQuery.isFetching && (
+        <Alert type="warning" message="No sales data found for this period." showIcon style={{ maxWidth: 500, marginBottom: 16 }} />
+      )}
+
+      {!reportQuery.isError && (
+        <>
+          <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+            <Col xs={12} sm={6}>
+              <Card size="small">
+                <Statistic title="SKUs Sold" value={items.length} valueStyle={{ color: '#1677ff' }} />
+              </Card>
+            </Col>
+            <Col xs={12} sm={6}>
+              <Card size="small">
+                <Statistic title="Total Revenue" value={totalRevenue} precision={2} prefix="₹" valueStyle={{ color: '#3f8600' }} />
+              </Card>
+            </Col>
+            <Col xs={12} sm={6}>
+              <Card size="small">
+                <Statistic title="Gross Profit" value={totalProfit} precision={2} prefix="₹"
+                  valueStyle={{ color: totalProfit >= 0 ? '#3f8600' : '#cf1322', fontWeight: 700 }} />
+              </Card>
+            </Col>
+            <Col xs={12} sm={6}>
+              <Card size="small">
+                <Statistic title="Overall Margin" value={overallMargin} precision={1} suffix="%"
+                  valueStyle={{ color: overallMargin >= 15 ? '#3f8600' : overallMargin >= 8 ? '#d46b08' : '#cf1322', fontWeight: 700 }} />
+              </Card>
+            </Col>
+          </Row>
+
+          <Table<ProfitMarginItem>
+            rowKey="drugId"
+            columns={marginColumns}
+            dataSource={items}
+            loading={reportQuery.isFetching}
+            size="small"
+            pagination={{ pageSize: 30, showSizeChanger: true, showTotal: (t) => `${t} drugs` }}
+            scroll={{ x: 1000 }}
+          />
+        </>
+      )}
+    </>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ReportsPage() {
@@ -381,6 +557,7 @@ export default function ReportsPage() {
           { key: 'daily', label: 'Daily Sales', children: <DailySalesTab /> },
           { key: 'monthly', label: 'Monthly Summary', children: <MonthlySummaryTab /> },
           { key: 'stock', label: 'Stock Valuation', children: <StockValuationTab /> },
+          { key: 'margin', label: 'Profit Margin', children: <ProfitMarginTab /> },
         ]}
       />
     </div>

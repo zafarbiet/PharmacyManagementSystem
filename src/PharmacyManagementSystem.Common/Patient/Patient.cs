@@ -11,4 +11,5 @@ public class Patient : BaseObject
     public string? Gstin { get; set; }
     public decimal CreditBalance { get; set; }
     public bool IsSubscriber { get; set; }
+    public decimal CreditLimit { get; set; }
 }

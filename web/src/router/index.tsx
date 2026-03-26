@@ -14,14 +14,25 @@ import BranchesListPage from '@/pages/settings/BranchesListPage';
 import DrugCategoriesListPage from '@/pages/settings/DrugCategoriesListPage';
 import RolesListPage from '@/pages/settings/RolesListPage';
 import StorageZonesPage from '@/pages/settings/StorageZonesPage';
+import MenuConfigPage from '@/pages/settings/MenuConfigPage';
 import QuotationRequestsListPage from '@/pages/quotations/QuotationRequestsListPage';
 import QuotationsListPage from '@/pages/quotations/QuotationsListPage';
 import PatientsListPage from '@/pages/patients/PatientsListPage';
 import PatientPrescriptionsPage from '@/pages/patients/PatientPrescriptionsPage';
 import DebtRecordsListPage from '@/pages/debt/DebtRecordsListPage';
+import ManufacturersListPage from '@/pages/settings/ManufacturersListPage';
+import PromotionsListPage from '@/pages/settings/PromotionsListPage';
+import QuotationVendorResponsesPage from '@/pages/quotations/QuotationVendorResponsesPage';
 import SubscriptionsListPage from '@/pages/subscriptions/SubscriptionsListPage';
 import DamageRecordsPage from '@/pages/inventory/DamageRecordsPage';
 import NotificationsPage from '@/pages/notifications/NotificationsPage';
+import PaymentLedgerPage from '@/pages/payments/PaymentLedgerPage';
+import DailyDiaryPage from '@/pages/diary/DailyDiaryPage';
+import AuditLogsPage from '@/pages/audit-logs/AuditLogsPage';
+import RacksListPage from '@/pages/settings/RacksListPage';
+import DrugPricingPage from '@/pages/settings/DrugPricingPage';
+import StockTransactionsPage from '@/pages/inventory/StockTransactionsPage';
+import FrontDeskPage from '@/pages/front-desk/FrontDeskPage';
 import { useGlobalStore } from '@/store/globalStore';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -96,6 +107,10 @@ export const router = createBrowserRouter([
         element: <StorageZonesPage />,
       },
       {
+        path: 'settings/menu',
+        element: <MenuConfigPage />,
+      },
+      {
         path: 'patients',
         element: <PatientsListPage />,
       },
@@ -126,6 +141,46 @@ export const router = createBrowserRouter([
       {
         path: 'quotations',
         element: <QuotationsListPage />,
+      },
+      {
+        path: 'quotations/vendor-responses',
+        element: <QuotationVendorResponsesPage />,
+      },
+      {
+        path: 'settings/manufacturers',
+        element: <ManufacturersListPage />,
+      },
+      {
+        path: 'settings/promotions',
+        element: <PromotionsListPage />,
+      },
+      {
+        path: 'payments',
+        element: <PaymentLedgerPage />,
+      },
+      {
+        path: 'diary',
+        element: <DailyDiaryPage />,
+      },
+      {
+        path: 'audit-logs',
+        element: <AuditLogsPage />,
+      },
+      {
+        path: 'settings/racks',
+        element: <RacksListPage />,
+      },
+      {
+        path: 'settings/drug-pricing',
+        element: <DrugPricingPage />,
+      },
+      {
+        path: 'inventory/stock-transactions',
+        element: <StockTransactionsPage />,
+      },
+      {
+        path: 'front-desk',
+        element: <FrontDeskPage />,
       },
     ],
   },
